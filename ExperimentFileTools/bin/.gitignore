@@ -1,3 +1,8 @@
 /ExperimentFile.class
 /TempTestDriver.class
 /Node.class
+/ExperimentFileReader.class
+/ExperimentFileReader$FileLoction.class
+/ExperimentFileReader$logBinMetadata.class
+/ExperimentFileReader$LogBinMetadata.class
+/LogBinMetadata.class
