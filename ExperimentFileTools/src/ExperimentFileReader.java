@@ -9,12 +9,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Provide an interface to get information from an experiment
- * file. 
+ * Provides an interface to get information from experiment
+ * files. 
  * 
- * Use cases: getting specific files for graphing, getting experiment metadata, exporting individual files 
+ * Instancing an ExperimentFileReader object provides methods of getting metadata from an experiment file.
+ * 
+ * Static methods advance an existing Reader,i.e BufferReader FileReader , that has an experiment file
+ * open to the correct location to read from a specific log/bin file.
+ * 
+ * Use cases: getting specific files for graphing, getting metadata for DB , getting experiment metadata, exporting individual files 
  */
-public class ExperimentFileReader {
+public class ExperimentFileReader {//TODO only work with long not int
 	private String path;
 	private ArrayList<String> nodeNames;
 	private int numberOfNodes;
@@ -23,7 +28,9 @@ public class ExperimentFileReader {
 	
 	
 	/**
-	 * Creates ExperimentFile, file at path must follow correct format or IOException will be trown 
+	 * Creates ExperimentFileReader, file at path must follow correct Experiment file format 
+	 * or IOException will be thrown. When created all experiment metadata is read from the file and
+	 * placed in accessible fields. 
 	 * 
 	 * @param path absolute path to the experiment file
 	 */
@@ -47,7 +54,7 @@ public class ExperimentFileReader {
 	 * @param experimentInfo First line of file, no new line at end
 	 * @return true if experimentInfo is formatted properly
 	 */
-	private boolean isMetadataFormatCorrect(String experimentInfo)
+	private static boolean isMetadataFormatCorrect(String experimentInfo)
 	{
 		Pattern infoPattern = Pattern.compile("^\\d{1,10} {1}(?:\\w+ {1})*\\w+{1}$");
 		Matcher infoMatcher = infoPattern.matcher(experimentInfo);
@@ -55,11 +62,42 @@ public class ExperimentFileReader {
 	}
 	
 	/**
+	 * Checks that nodeFileInfo matches (nodeName log/bin fileLength) format. This check
+	 * allows for trailing whitespace characters but no leading ones.
+	 * <p>Valid Example:node_1 log 9938 
+	 * @param nodeFileInfo Log/bin file metadata line.
+	 * @throws IOException Thrown if nodeFileInfo does not match file format.
+	 */
+	private static void verifyNodeMetadataFormat(String nodeFileInfo) throws IOException
+	{
+		Pattern infoPattern = Pattern.compile("^(\\w+) (\\w+) (\\d+)\\s*$");
+		String  exceptionMessage = "Incorrect node metadata format: ";
+		Matcher infoMatcher = infoPattern.matcher(nodeFileInfo);
+		if(infoMatcher.matches())
+		{
+			System.out.println(infoMatcher.group(2));
+			if(infoMatcher.group(2).equals("log") || infoMatcher.group(2).equals("bin"))
+			{
+				return;
+			}
+			else
+			{
+				exceptionMessage += "Expected " + infoMatcher.group(2) + " to equal log or bin.";
+			}
+		}else
+		{
+			exceptionMessage += "Expected " + nodeFileInfo + "to match nodeName log/bin fileLength.";
+		}
+		
+		throw new IOException(exceptionMessage);
+	}
+	
+	/**
 	 * Given first line of experiment file returns the number of nodes in file
 	 * @param experimentInfo First line of file, no new line at end
 	 * @return number of nodes in file
 	 */
-	private int extractNumOfNodes(String experimentInfo)
+	private static int extractNumOfNodes(String experimentInfo)
 	{
 		Pattern dataPattern = Pattern.compile("^(\\d{1,10}) ");
 		Matcher dataMatcher = dataPattern.matcher(experimentInfo);
@@ -91,10 +129,11 @@ public class ExperimentFileReader {
 	 * Takes string formatted: nodeName fileType length and returns logBinMetadata with info
 	 * @param data line froma file formatted nodeName fileType length 
 	 * @return
+	 * @throws IOException Thrown if node metadata format is incorrect.
 	 */
-	static private LogBinMetadata extractBinAndLogMetadata(String data)
+	static private LogBinMetadata extractNodeMetadata(String data) throws IOException
 	{
-		//TODO check file format
+		verifyNodeMetadataFormat(data);
 		//TODO what if fail
 		String[] splitData = data.split("\\s");
 		if(splitData.length >= 3 )
@@ -108,14 +147,11 @@ public class ExperimentFileReader {
 		return null;
 	}
 	
-	/*
-	 * 
-	 */
-	public static void findInFile(Reader r, FileLoction where)
+	/*public static void findInFile(Reader r, FileLoction where)
 	{
 		
 		
-	}
+	}*/
 	
 	/**
 	 * 
@@ -137,16 +173,18 @@ public class ExperimentFileReader {
 	}
 
 	/**
-	 * Advances reader with experiment file open to the searched for location in the 
-	 * file
+	 * Advances reader currently at the beginning of an experiment file to a specific location in the 
+	 * file. The reader will be placed at the beginning of the desired log/bin file with
+	 * the matching nodeName. 
 	 * 
-	 * @param r reader with file open
-	 * @param nodeName name of node to search for files
-	 * @param wantLogFile true to search for log file, false to search for bin file
-	 * @throws IOException
+	 * @param r Reader at beginning of experiment file.
+	 * @param nodeName Name of node as stored in the experiment file.
+	 * @param wantLogFile True to search for log file, false to search for bin file.
+	 * @throws IOException Thrown if file doesn't follow experiment file format, or reader experiences IO issues.
+	 * @return True if reader is successfully advanced to log/bin file.
 	 */
 	public static boolean findNodeFile(Reader r, String nodeName, boolean wantLogFile) throws IOException
-	{
+	{//TODO check for proper file format
 		char[] buff = new char[100];
 		int length = readLine(r, buff);
 		ArrayList a = extractNodeNames( String.copyValueOf(buff, 0, length-1) );
@@ -155,27 +193,29 @@ public class ExperimentFileReader {
 		//if never found return false
 		length = readLine(r, buff);
 		String logBinInfo  = String.copyValueOf(buff, 0, length);
-		LogBinMetadata parsedData = extractBinAndLogMetadata(logBinInfo);		
+		LogBinMetadata parsedData = extractNodeMetadata(logBinInfo);		
 		while (!parsedData.getName().equals(nodeName) || parsedData.isLogFile() != wantLogFile)
 		{
 			long j  = r.skip(parsedData.getFileLength());
 			length = readLine(r, buff);
 			logBinInfo  = String.copyValueOf(buff, 0, length);
-			parsedData = extractBinAndLogMetadata(logBinInfo);
+			parsedData = extractNodeMetadata(logBinInfo);
 		}
 
 		//check name and file type if not skip by chars
-		return true;
+		return true;//TODO make return meaningful
 	}
 	
 	/**
-	 * Advances reader with experiment file open to the searched for location in the 
-	 * file
+	 * Advances a reader currently at the beginning of an experiment file to a specific 
+	 * location in the file. The reader will be placed at the beginning of the log/bin file with
+	 * the matching index.
 	 * 
-	 * @param r reader with file open
-	 * @param nodeIndex index of node to search for files
-	 * @param wantLogFile true to search for log file, false to search for bin file
-	 * @throws IOException
+	 * @param r Reader at beginning of experiment file.
+	 * @param nodeIndex index of node to search for files, index starts at 0.
+	 * @param wantLogFile True to search for log file, false to search for bin file.
+	 * @throws IOException Thrown if file doesn't follow experiment file format, or reader experiences IO issues.
+	 * @return True if reader is successfully advanced to log/bin file.
 	 */
 	public static boolean findNodeFile(Reader r, int nodeIndex, boolean wantLogFile) throws IOException
 	{
@@ -187,14 +227,14 @@ public class ExperimentFileReader {
 		//if never found return false
 		length = readLine(r, buff);
 		String logBinInfo  = String.copyValueOf(buff, 0, length);
-		LogBinMetadata parsedData = extractBinAndLogMetadata(logBinInfo);	
+		LogBinMetadata parsedData = extractNodeMetadata(logBinInfo);	
 		int i = 0;
 		while (i != nodeIndex || parsedData.isLogFile() != wantLogFile)
 		{
 			long j  = r.skip(parsedData.getFileLength());
 			length = readLine(r, buff);
 			logBinInfo  = String.copyValueOf(buff, 0, length);
-			parsedData = extractBinAndLogMetadata(logBinInfo);
+			parsedData = extractNodeMetadata(logBinInfo);
 			if(parsedData.isLogFile())
 			{
 				i++;
@@ -221,10 +261,10 @@ public class ExperimentFileReader {
 	/*
 	 * Locations in experiment file that may be useful to advance to
 	 */
-	public enum FileLoction {
+	/*public enum FileLoction {
 	    NODENAMES_BEGINING
 	}
-	
+	*/
 	
 }
 
