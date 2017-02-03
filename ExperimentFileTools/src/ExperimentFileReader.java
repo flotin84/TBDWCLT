@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,7 +46,7 @@ public class ExperimentFileReader {//TODO only work with long not int
 			throw new IOException("Experiment files must start with an integer of length " + MAX_NODE_NUM_LENGTH + " or less then a space then one or more node names seperated by spaces then newline.");
 		}
 		numberOfNodes = extractNumOfNodes(experimentFileInfo);
-		nodeNames = extractNodeNames(experimentFileInfo);
+	//	nodeNames = extractNodeNames(experimentFileInfo);
 		
 	}
 	
@@ -56,7 +57,7 @@ public class ExperimentFileReader {//TODO only work with long not int
 	 */
 	private static boolean isMetadataFormatCorrect(String experimentInfo)
 	{
-		Pattern infoPattern = Pattern.compile("^\\d{1,10} {1}(?:\\w+ {1})*\\w+{1}$");
+		Pattern infoPattern = Pattern.compile("^EXPTBD \\d{8}$");
 		Matcher infoMatcher = infoPattern.matcher(experimentInfo);
 		return infoMatcher.matches();	
 	}
@@ -70,23 +71,35 @@ public class ExperimentFileReader {//TODO only work with long not int
 	 */
 	private static void verifyNodeMetadataFormat(String nodeFileInfo) throws IOException
 	{
-		Pattern infoPattern = Pattern.compile("^(\\w+) (\\w+) (\\d+)\\s*$");
+		Pattern infoPattern = Pattern.compile("^(\\d+) (\\w+) (\\w+) (\\d+)\\s*$");
 		String  exceptionMessage = "Incorrect node metadata format: ";
 		Matcher infoMatcher = infoPattern.matcher(nodeFileInfo);
 		if(infoMatcher.matches())
 		{
+			System.out.println(infoMatcher.group(1));
 			System.out.println(infoMatcher.group(2));
+			System.out.println(infoMatcher.group(3));
+			System.out.println(infoMatcher.group(4));
 			if(infoMatcher.group(2).equals("log") || infoMatcher.group(2).equals("bin"))
 			{
-				return;
+				if(infoMatcher.group(3).equals("master") || infoMatcher.group(3).equals("slave_"))
+				{
+					return;
+				}
+				else
+				{
+					exceptionMessage += "Expected " + infoMatcher.group(3) + " to equal master or slave_";
+				}
 			}
 			else
 			{
 				exceptionMessage += "Expected " + infoMatcher.group(2) + " to equal log or bin.";
 			}
+			
+			
 		}else
 		{
-			exceptionMessage += "Expected " + nodeFileInfo + "to match nodeName log/bin fileLength.";
+			exceptionMessage += "Expected " + nodeFileInfo + "to match nodeNum log/bin nodeType fileLength.";
 		}
 		
 		throw new IOException(exceptionMessage);
@@ -113,7 +126,7 @@ public class ExperimentFileReader {//TODO only work with long not int
 	 * @param experimentInfo First line of file, no new line at end
 	 * @return ArrayList<String> of nodeNames in file
 	 */
-	static private ArrayList<String> extractNodeNames(String experimentInfo)
+	/*static private ArrayList<String> extractNodeNames(String experimentInfo)
 	{
 		Pattern dataPattern = Pattern.compile(" {1}(\\w+)");
 		Matcher dataMatcher = dataPattern.matcher(experimentInfo);
@@ -123,7 +136,7 @@ public class ExperimentFileReader {//TODO only work with long not int
 			nodeNames.add(dataMatcher.group(1));
 		}
 		return nodeNames;
-	}
+	}*/
 	
 	/**
 	 * Takes string formatted: nodeName fileType length and returns logBinMetadata with info
@@ -138,20 +151,16 @@ public class ExperimentFileReader {//TODO only work with long not int
 		String[] splitData = data.split("\\s");
 		if(splitData.length >= 3 )
 		{
-			String nodeName = splitData[0];
+			int nodeIndex = Integer.parseInt( splitData[0] );
 			boolean isLogFile = splitData[1].equals( "log" );
-			int fileLength = Integer.parseInt( splitData[2] );		
-			return new LogBinMetadata(nodeName,isLogFile,fileLength);
+			String nodeType = splitData[2];
+			int fileLength = Integer.parseInt( splitData[3] );		
+			return new LogBinMetadata(nodeIndex,isLogFile,nodeType,fileLength);
 			
 		}
 		return null;
 	}
 	
-	/*public static void findInFile(Reader r, FileLoction where)
-	{
-		
-		
-	}*/
 	
 	/**
 	 * 
@@ -183,7 +192,7 @@ public class ExperimentFileReader {//TODO only work with long not int
 	 * @throws IOException Thrown if file doesn't follow experiment file format, or reader experiences IO issues.
 	 * @return True if reader is successfully advanced to log/bin file.
 	 */
-	public static boolean findNodeFile(Reader r, String nodeName, boolean wantLogFile) throws IOException
+	/*public static boolean findNodeFile(Reader r, String nodeName, boolean wantLogFile) throws IOException
 	{//TODO check for proper file format
 		char[] buff = new char[100];
 		int length = readLine(r, buff);
@@ -201,10 +210,9 @@ public class ExperimentFileReader {//TODO only work with long not int
 			logBinInfo  = String.copyValueOf(buff, 0, length);
 			parsedData = extractNodeMetadata(logBinInfo);
 		}
-
 		//check name and file type if not skip by chars
 		return true;//TODO make return meaningful
-	}
+	}*/
 	
 	/**
 	 * Advances a reader currently at the beginning of an experiment file to a specific 
@@ -221,24 +229,21 @@ public class ExperimentFileReader {//TODO only work with long not int
 	{
 		char[] buff = new char[100];
 		int length = readLine(r, buff);
-		ArrayList a = extractNodeNames( String.copyValueOf(buff, 0, length-1) );
-		
-		//loop till the that is true then return successful
-		//if never found return false
+		isMetadataFormatCorrect(String.copyValueOf(buff, 0, length));//Look to doing this more dynamically
+		r.skip(2000/2);//2000 bytes / 2 bytes for UTF-16
 		length = readLine(r, buff);
+		
 		String logBinInfo  = String.copyValueOf(buff, 0, length);
+		System.out.print(String.copyValueOf(buff, 0, length));
 		LogBinMetadata parsedData = extractNodeMetadata(logBinInfo);	
 		int i = 0;
-		while (i != nodeIndex || parsedData.isLogFile() != wantLogFile)
+		while (parsedData.getNodeIndex() != nodeIndex || parsedData.isLogFile() != wantLogFile)
 		{
 			long j  = r.skip(parsedData.getFileLength());
 			length = readLine(r, buff);
 			logBinInfo  = String.copyValueOf(buff, 0, length);
+			System.out.print(String.copyValueOf(buff, 0, length));
 			parsedData = extractNodeMetadata(logBinInfo);
-			if(parsedData.isLogFile())
-			{
-				i++;
-			}
 		}
 
 		//check name and file type if not skip by chars
@@ -271,21 +276,27 @@ public class ExperimentFileReader {//TODO only work with long not int
 
 class LogBinMetadata
 {
-	private String name;
+	private int nodeIndex;
 	private int fileLength;
 	private boolean isLogFile;
+	private String nodeType;
 	
-	LogBinMetadata(String name, boolean isLogFile, int fileLength )
+	LogBinMetadata(int nodeIndex, boolean isLogFile,String nodeType, int fileLength )
 	{
-		this.name = name;
+		this.nodeIndex = nodeIndex;
 		this.isLogFile = isLogFile;
+		this.nodeType = nodeType;//TODO check for correct types
 		this.fileLength = fileLength;
 	}
 	
-	public String getName() {
-		return name;
+	public int getNodeIndex() {
+		return nodeIndex;
 	}
 
+	public String getNodeType() {
+		return nodeType;
+	}
+	
 	public int getFileLength() {
 		return fileLength;
 	}
@@ -296,11 +307,13 @@ class LogBinMetadata
 
 	@Override
 	public String toString() {
-		return name + " " + fileLength + " " + isLogFile; 
+		return nodeType + ", file length = " + fileLength + ", index = "+ nodeIndex + ", Is log file? " + isLogFile; 
 	
 	}
 
 }
+
+
 
 
 

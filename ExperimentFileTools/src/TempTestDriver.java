@@ -10,11 +10,12 @@ public class TempTestDriver {
 	public static void main(String args[])
 	{
 
-		String filePath = "C:\\Users\\JRC\\TestExperimentFiles\\file_example.txt";
+		String filePath = "C:\\Users\\JRC\\TestExperimentFiles\\new_example.txt";
 		String[] wrongFiles = {"C:\\Users\\JRC\\TestExperimentFiles\\file_example2.txt","C:\\Users\\JRC\\TestExperimentFiles\\file_example3.txt","C:\\Users\\JRC\\TestExperimentFiles\\file_example4.txt"};
 		try {			
 			BufferedReader in = new BufferedReader(new FileReader(filePath));
-			ExperimentFileReader.findNodeFile(in,"n2",true);
+			ExperimentFileReader.findNodeFile(in,1,false);
+			System.out.println("\n\nFILE\n--------------");
 			System.out.println( in.readLine() );
 		} catch (IOException e) {
 			e.printStackTrace();
