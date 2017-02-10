@@ -1,4 +1,5 @@
 import sys
+import os
 import wx
 import wx.grid as gridlib
 
@@ -7,7 +8,7 @@ class MyFrame(wx.Frame):
         # First, call the base class' __init__ method to create the frame
         wx.Frame.__init__(self, parent, id, title)
         self.CenterOnScreen()
-
+        
         # Setup our menu bar.
         menuBar = wx.MenuBar()
 
@@ -37,14 +38,60 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.menuSpreadsheet, id=202)
         
         # Make a textbox in the screen
-        tc = wx.TextCtrl(self, -1, "Welcome", style=wx.TE_READONLY|wx.TE_MULTILINE)
-        self.tc = tc
+        #tc = wx.TextCtrl(self, -1, "Welcome", style=wx.TE_READONLY|wx.TE_MULTILINE)
+        #self.tc = tc
         
         
     # Menu functions called on Menu Events
     def menuNew(self, event):
-        self.tc.Remove(0, 100)
-        self.tc.WriteText("File -> New experiment file")
+        numberOfNodes = 1
+        # Node select box
+        wx.StaticText(self, -1, "New experiment file.", (15, 10))
+        wx.StaticText(self, -1, "Node:", (15, 40))
+        self.ch = wx.Choice(self, -1, (55, 40), choices = ['1'])
+        self.Bind(wx.EVT_CHOICE, self.NodeSelect, self.ch)
+        # Add another node
+        addNodeButton = wx.Button(self, -1, "Add another node", (55, 50))
+        self.Bind(wx.EVT_BUTTON, self.AddNode, addNodeButton)
+        # Log and binary file select buttons
+        logButton = wx.Button(self, -1, "Select log file", (15, 70))
+        self.Bind(wx.EVT_BUTTON, self.OnLogButton, logButton)
+        binaryButton = wx.Button(self, -1, "Select Binary file", (15, 100))
+        self.Bind(wx.EVT_BUTTON, self.OnBinaryButton, binaryButton)
+        
+    def AddNode(self, event):
+        numberOfNodes = numberOfNodes + 1
+        self.ch.Append("%d" % numberOfNodes)
+        
+    def NodeSelect(self, event):
+        selectedNode = int(event.GetString())
+        sys.stdout.write('You selected %d\n' % selectedNode)
+        
+    def OnLogButton(self, event):
+        dlg = wx.FileDialog(
+            self, message="Choose a file",
+            defaultDir=os.getcwd(), 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            paths = dlg.GetPaths()
+            sys.stdout.write('You selected %s\n' % dlg.GetPath())
+            
+        dlg.Destroy()
+        
+    def OnBinaryButton(self, event):
+        dlg = wx.FileDialog(
+            self, message="Choose a file",
+            defaultDir=os.getcwd(), 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            paths = dlg.GetPaths()
+            sys.stdout.write('You selected %s\n' % dlg.GetPath())
+            
+        dlg.Destroy()
     
     def menuOpen(self, event):
         self.tc.Remove(0, 100)

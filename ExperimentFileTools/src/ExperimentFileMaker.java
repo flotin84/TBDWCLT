@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.util.zip.*;
 
 public class ExperimentFileMaker {
 	public static void main(String[] args) {
@@ -14,8 +15,8 @@ public class ExperimentFileMaker {
 		names[0] = "node1";
 		names[1] = "node2";
 		names[2] = "node3";
-		String file = "TestFile.txt";
-		String binaryfile = "TestFileBinary.txt";
+		String file = "target";
+		String binaryfile = "Sinusoid.BIN";
 		logs[0] = file;
 		logs[1] = file;
 		logs[2] = file;
@@ -23,37 +24,60 @@ public class ExperimentFileMaker {
 		binary[1] = binaryfile;
 		binary[2] = binaryfile;
 		
+		StringBuilder sb = new StringBuilder();
+		
 		try {
-			FileWriter writer = new FileWriter(experimentFileName, true);
-			//PrintWriter writer = new PrintWriter(new FileWriter("TestExperimentFile", true));
+			//FileWriter writer = new FileWriter(experimentFileName);
 			int i;
 			for (i = 0; i < NumberOfNodes; i++) {
-				writer.write(names[i] + ' ');
+				sb.append(names[i] + ' ');
+				//writer.write(names[i] + ' ');
 			}
 			
 			for (i = 0; i < NumberOfNodes; i++) {
-				writer.write('\n');
+				sb.append('\n');
+				//writer.write('\n');
 				// log
 				File log = new File(file);
-				writer.write(names[i] + " log " + log.length() + '\n');
+				sb.append(names[i] + " log " + log.length() + '\n');
+				//writer.write(names[i] + " log " + log.length() + '\n');
 				Scanner temp = new Scanner(log);
 				while (temp.hasNext()) {
-					writer.write(temp.next());
+					sb.append(temp.next());
+					//writer.write(temp.next());
 				}
-				
-				writer.write('\n');
+				sb.append('\n');
+				//writer.write('\n');
 				
 				// binary
 				File binarytest = new File(binaryfile);
-				writer.write(names[i] + " binary " + binarytest.length() + '\n');
+				sb.append(names[i] + " binary " + binarytest.length() + '\n');
+				//writer.write(names[i] + " binary " + binarytest.length() + '\n');
 				temp = new Scanner(binarytest);
 				while (temp.hasNext()) {
-					writer.write(temp.next());
+					sb.append(temp.next());
+					//writer.write(temp.next());
 				}
 			}
-			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		
+		// Zip the file
+		try {
+			File f = new File("TestExperimentFile.zip");
+			ZipOutputStream out = new ZipOutputStream(new FileOutputStream(f));
+			ZipEntry e = new ZipEntry("TestExperimentFile.txt");
+			out.putNextEntry(e);
+	
+			byte[] data = sb.toString().getBytes();
+			out.write(data, 0, data.length);
+				out.closeEntry();
+	
+			out.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 	}
 }
