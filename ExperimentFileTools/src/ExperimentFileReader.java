@@ -46,8 +46,7 @@ public class ExperimentFileReader {//TODO only work with long not int
 			throw new IOException("Experiment files must start with an integer of length " + MAX_NODE_NUM_LENGTH + " or less then a space then one or more node names seperated by spaces then newline.");
 		}
 		numberOfNodes = extractNumOfNodes(experimentFileInfo);
-	//	nodeNames = extractNodeNames(experimentFileInfo);
-		
+	//	nodeNames = extractNodeNames(experimentFileInfo);	
 	}
 	
 	/**
