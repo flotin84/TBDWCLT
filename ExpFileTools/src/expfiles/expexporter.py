@@ -18,7 +18,7 @@ def export_log(exp_path, new_path ,index):
         index -- index of node, greater than 0. 
     """
     print('Exporting log of ' + str(index))
-    data = pd.read_hdf(expfilepath,'log' + str(index))
+    data = pd.read_hdf(exp_path,'log' + str(index))
     data.to_csv(new_path,sep='\t',index=False);#TODO: check passed in names for validity on log and bin
     
 
