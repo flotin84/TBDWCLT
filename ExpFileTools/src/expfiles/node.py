@@ -16,4 +16,6 @@ class Node:
         '''
         self.logpath = log_path
         self.binpath = bin_path
-        self.node_type = node_type if (node_type == 'master' or node_type == 'slave') else ''
+        if (node_type != 'master' and node_type != 'slave' and node_type != ''):
+            raise ValueError('node_type provided "%s" should equal "slave", "master", or be empty '%(node_type))
+        self.node_type = node_type;
