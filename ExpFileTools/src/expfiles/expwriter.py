@@ -39,15 +39,21 @@ def __write_node_files(filepath,node,index):
 
 def generate_experiment_file(new_path,node_list):
     '''
-    Given Node array this function creates hdf5 file filled with Node log and bin files
+    Given Node array this function creates hdf5 file filled with Node log files,bin files and node type(master/slave). 
+    File must not already exist.
+    
+    Throws:
+        IOError -- If file at path already exists or error occurs during creation. If error occurs during
+            creation the experiment file will not be generated. This could be due to invalid log/bin paths.
     
     Arguments:
         new_path -- Path to new experiment file, file extension must end in .h5
-        node_list -- Array of Nodes 
+        node_list -- Node or Array of Nodes, it is acceptable for node to not have log,bin, or node type(master/slave) 
     '''
-    print("generating...")
+    print("generating...")#TODO assert h5 extension
     index = 0
-    #__write_experiment_metadata(nodelist.count)
+    
+    #Check if file at path already exists
     if( os.path.isfile(new_path) ):
         raise IOError("File %s already exists, only generate new files"%(new_path));
     
@@ -60,7 +66,7 @@ def generate_experiment_file(new_path,node_list):
             __write_node_files(new_path,node_list,index) 
     except IOError as e:
         if(os.path.isfile(new_path)):
-            print('File created but error occured.')
+            print('File created but error occured, removing created file.')
             os.remove(new_path);
         raise e
         
