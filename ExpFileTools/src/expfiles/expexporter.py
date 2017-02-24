@@ -30,7 +30,7 @@ def export_bin(exp_path, new_path ,index):
     Arguments:
         exp_path -- path to experiment file
         new_path -- path to new log ending in file name with .bin extension
-        index -- index of node, greater than 0
+        index -- index of node, starts at 0
     """
     print('Exporting bin of ' + str(index))
     data = pd.read_hdf(exp_path,'bin' + str(index))

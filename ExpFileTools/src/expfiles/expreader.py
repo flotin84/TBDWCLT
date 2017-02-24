@@ -8,7 +8,7 @@ def get_node_file( path, node_index, type_log = True):
     
     Arguments:
         path -- path to experiment file
-        node_index -- greater than 0, index of node to get file from
+        node_index -- index starts at 0, index of node to get file from
         type_log -- if true log file is returned, false bin file is returned
     '''
     type = 'log' if  type_log else 'bin' 
