@@ -2,6 +2,8 @@ import sys
 import os
 import wx
 import wx.grid as gridlib
+import Gnuplot
+from expfiles import *
 
 class MyFrame(wx.Frame):
     def __init__(self, parent, id, title):
@@ -17,8 +19,6 @@ class MyFrame(wx.Frame):
         menu1.Append(101, "New Experiment File", "")
         menu1.Append(102, "Open Experiment File", "")
         menu1.AppendSeparator()
-        menu1.Append(103, "Save", "")
-        menu1.Append(104, "Save As", "")
         menuBar.Append(menu1, "File")
         
         # Analyze Menu Bar
@@ -32,13 +32,11 @@ class MyFrame(wx.Frame):
         # Menu Events
         self.Bind(wx.EVT_MENU, self.menuNew, id=101)
         self.Bind(wx.EVT_MENU, self.menuOpen, id=102)
-        self.Bind(wx.EVT_MENU, self.menuSave, id=103)
-        self.Bind(wx.EVT_MENU, self.menuSaveAs, id=104)
         self.Bind(wx.EVT_MENU, self.menuPlot, id=201)
         self.Bind(wx.EVT_MENU, self.menuSpreadsheet, id=202)
-        # Make a textbox in the screen
-        #tc = wx.TextCtrl(self, -1, "Welcome", style=wx.TE_READONLY|wx.TE_MULTILINE)
-        #self.tc = tc
+        # Default greeting
+        
+        #wx.StaticText(self, -1, "Welcome. To create a new experiment file, select File->New experiment file", (10,10))
         
         
     # Menu functions called on Menu Events
@@ -46,6 +44,9 @@ class MyFrame(wx.Frame):
         global numberOfNodes, nodePathList
         numberOfNodes = 1
         nodePathList = ['']
+        # Description of file
+        
+        
         # Node select box
         wx.StaticText(self, -1, "New experiment file.", (15, 10))
         wx.StaticText(self, -1, "Node:", (15, 40))
@@ -66,6 +67,31 @@ class MyFrame(wx.Frame):
         # Size of files 
         self.file_size_log = wx.StaticText(self, wx.ID_ANY, "No file selected", (140, 75))
         self.file_size_bin = wx.StaticText(self, wx.ID_ANY, "No file selected", (140, 105))
+        # Create experiment file buttons
+        createFileButton = wx.Button(self, -1, "Save file as", (15,135))
+        self.Bind(wx.EVT_BUTTON, self.createFile, createFileButton)
+        
+    def createFile(self, event):
+        dlg = wx.FileDialog(
+            self, message="Save File As",
+            defaultDir=os.getcwd(), 
+            defaultFile="",
+            wildcard=".h5",
+            style=wx.SAVE
+            )
+        dlg.SetFilterIndex(2)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            i = 0
+            node_list = []
+            while (i < numberOfNodes):
+                node_list.append(node.Node(nodePathList[2*i], nodePathList[2*i+1]))
+                i = i + 1
+            
+            expwriter.generate_experiment_file(dlg.GetPath(), node_list)
+            #print ( expreader.get_node_file(dlg.GetPath(), 1, True))
+        
+        dlg.Destroy()
         
     def DeleteNode(self, event):
         global numberOfNodes
@@ -150,8 +176,9 @@ class MyFrame(wx.Frame):
         self.tc.WriteText("File -> Save As")
         
     def menuPlot(self, event):
-        self.tc.Remove(0, 100)
-        self.tc.WriteText("Analyze -> Plot")
+        g = Gnuplot.Gnuplot()
+        g.title("Test")
+        
        
     def menuSpreadsheet(self, event):
         frame = SpreadsheetFrame(None, sys.stdout)
