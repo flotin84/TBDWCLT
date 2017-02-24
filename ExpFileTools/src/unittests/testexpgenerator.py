@@ -6,6 +6,8 @@ Created on Feb 18, 2017
 import unittest
 import os
 import shutil
+import numpy as np
+import pandas as pd
 import expfiles.expwriter as expwriter
 import expfiles.node as node
 '''
@@ -20,12 +22,18 @@ class TestExpGenerator(unittest.TestCase):
             os.makedirs(self.FILE_PATH)   
         empty = open(self.FILE_PATH + 'dummy.h5','w')
         empty.close()
-        log = open(self.FILE_PATH + 'log.txt','w')
-        log.write('hello    how    are    you\n1    2    3    4')
-        log.close()
+        test_data = pd.DataFrame(np.random.randn(10, 4), columns=['A', 'B', 'C', 'D'])
+        test_data.to_csv(self.FILE_PATH+'log.txt', sep='\t', index_label='index')
         bin = open(self.FILE_PATH + 'num.bin','w')
         bin.write('2136732722383278432782243228734')
         bin.close()
+        log = open(self.FILE_PATH + 'log2.txt','w')
+        log.write('hello    how    are    you\n1    2    3    4')
+        log.close()
+        bin = open(self.FILE_PATH + 'num2.bin','w')
+        bin.write('2136732722383278432782243228734')
+        bin.close()
+    
     
     def tearDown(self):
         if os.path.exists(self.FILE_PATH):
@@ -45,12 +53,18 @@ class TestExpGenerator(unittest.TestCase):
         with self.assertRaises(IOError):
             expwriter.generate_experiment_file(self.FILE_PATH + 'testbinfailgen555.h5', node.Node(self.FILE_PATH + 'log.txt','doesNotExist.bin'))
         self.assertFalse( os.path.isfile(self.FILE_PATH + 'testbinfailgen555.h5') )#File should not of been generated
-
-        
+    
+    
     def test_succ_gen(self):
-        pass
+        test_nodes = [node.Node(self.FILE_PATH + 'log.txt',self.FILE_PATH + 'num.bin','master'),node.Node(self.FILE_PATH + 'log2.txt',self.FILE_PATH + 'num2.bin','slave')]
+        path = self.FILE_PATH + 'testExp1.hdf'
+        expwriter.generate_experiment_file(path, test_nodes)
+        self.assertTrue( os.path.isfile(path) )
+        self.assertEquals( list(pd.read_hdf(path , 'log0' )), ['index','A','B' ,'C' , 'D'] )
+        with self.assertRaises( KeyError ):
+            pd.read_hdf(path , 'bin2')
     
-    
+
     
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

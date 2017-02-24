@@ -9,6 +9,8 @@ def get_node_file( path, node_index, type_log = True):
     Given experiment file and node index returns a DataFrame of log or bin file. 
     Binary files are not stored in a usable way yet.
     
+    
+    
     Arguments:
         path -- path to experiment file
         node_index -- index starts from 0, index of node to get file from
