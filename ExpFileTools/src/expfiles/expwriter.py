@@ -96,14 +96,36 @@ def add_node(exp_path,node_list):
         index += 1
     
 def del_node_file(exp_path,node_index,is_log):
-    '''
-    
+    '''TODO: is this the right way to handle no file
+        Removes node file from HDF5 file, if file doesn't exist doesn't exist nothing happens
     '''
     with pd.HDFStore(exp_path) as store:
         node_type = 'log' if is_log else 'bin'
-        store.remove(node_type + str(node_index))
-        
+        node_name = node_type + str(node_index)
+        if '/'+node_name in store.keys():
+            store.remove(node_type + str(node_index))
 
+        
+def del_node(exp_path,node_index):
+    '''
+        Given experiment file and node index, deletes the log and bin at that index if they exist. If no files at that index exist nothing happens.
+        All later nodes will be shifted down 1 index so there are no gaps in numbering. For example if file has nodes: 0,1,2 then we remove 1
+        -> file now has nodes: 0,1 where the node at index 1 used to be at index 2
+        
+        Arguments:
+            exp_path -- path to experiment file
+            node_index -- index starts from 0, index of node to get removed
+    '''
+    del_node_file(exp_path,node_index,True)
+    del_node_file(exp_path,node_index,False)
+    with pd.HDFStore(exp_path) as store:
+        for key in store.keys():
+            current_index = int(key[-1])
+            if current_index > node_index:
+                store.get_node(key)._f_rename( key[1:len(key)-1] + str(current_index - 1) )
+        #store.get_node('log0')._f_rename('b')
+    
+        
         
         
         

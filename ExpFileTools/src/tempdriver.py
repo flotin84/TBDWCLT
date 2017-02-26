@@ -18,7 +18,9 @@ print("Running test...")
 node_list = [ node.Node( TEST_FILES_PATH + "log.txt", TEST_FILES_PATH + "Sinusoid.bin", 'slave'),node.Node( TEST_FILES_PATH + "log.txt", TEST_FILES_PATH + "Sinusoid.bin", 'master')]
 node_list = node.Node(bin_path = TEST_FILES_PATH + "Sinusoid.bin") 
 exp_path =  EXPERIMENT_PATH + 'testexpbin2.h5';
-expwriter.generate_experiment_file(exp_path, node_list)
+expwriter.del_node(exp_path)
+#expwriter.generate_experiment_file(exp_path, node_list)
+
 
 #expexporter.export_log(exp_path, EXPORT_PATH + 'exportedlog.txt',1)
 #print ( expreader.get_node_file(exp_path, 1, True) )
