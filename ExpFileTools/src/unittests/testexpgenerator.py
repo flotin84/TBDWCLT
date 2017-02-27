@@ -15,6 +15,7 @@ If file alread exists throw exception
 If error occurs during creation file is not gened
 '''
 
+#TODO test overwrite, test add node with types
 class TestExpGenerator(unittest.TestCase):
     FILE_PATH = '../../files/unittestfiles/'
     def setUp(self):

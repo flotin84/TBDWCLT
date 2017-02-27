@@ -74,8 +74,12 @@ def generate_experiment_file(new_path, node_list, exp_notes='', overwrite = Fals
     index = 0
     
     #Check if file at path already exists
-    if( not overwrite and os.path.isfile(new_path) ):
-        raise IOError("File %s already exists, only generate new files. This error may be suppressed by passing in overwrite = True" %(new_path))
+    if( os.path.isfile(new_path) ):
+        if(overwrite):
+            os.remove(new_path);
+        else:
+            raise IOError("File %s already exists, only generate new files. This error may be suppressed by passing in overwrite = True" %(new_path))    
+    
     node_types = []
     try:            
         if hasattr(node_list, '__iter__'):
@@ -89,6 +93,7 @@ def generate_experiment_file(new_path, node_list, exp_notes='', overwrite = Fals
         with pd.HDFStore(new_path) as store:
             store['notes'] = pd.Series(exp_notes)
             store['types'] = pd.Series(node_types)
+            print store['types']
     except IOError as e:
         if(os.path.isfile(new_path)):
             print('File created but error occured, removing created file.')
@@ -126,14 +131,22 @@ def add_nodes(exp_path,node_list):
         IOError -- if something bad happens
     '''  
     #TODO: find last node index
-    new_index = __number_of_nodes(exp_path);
+    new_index = __number_of_nodes(exp_path)
+    node_types = []
     try:
         if hasattr(node_list, '__iter__'):
             for node in node_list:
                 __write_node_files(exp_path,node,new_index)
                 new_index += 1
+                node_types.append(node.node_type)
         else:
             __write_node_files(exp_path,node_list,new_index) 
+            node_types.append(node_list.node_type)
+       
+        #Write node types
+        with pd.HDFStore(exp_path) as store:
+            store['types'] = store['types'].append( pd.Series(node_types) )
+            
     except IOError as e:
         print('Error occurred additions might not have taken place')    
         raise e
