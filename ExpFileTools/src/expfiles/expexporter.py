@@ -33,22 +33,12 @@ def export_log(exp_path, dir_path ,node_index, file_name=''):
     
 '''
 def export_bin(exp_path, new_path ,index,file_name=''):
-    """
+
     Given path to experiment file and an index of the node in the experiment file returns DataFrame of bin
     An exception will be thrown if the log file is not found experiment file
 
-<<<<<<< HEAD
-    Arguments:
-        exp_path -- path to experiment file
-        new_path -- path to new log ending in file name with .bin extension
-        index -- index of node, starts at 0
-=======
-    |  Arguments:
-    |      exp_path -- path to experiment file
-    |      new_path -- path to new log ending in file name with .bin extension
-    |      index -- index of node, greater than 0
->>>>>>> refs/heads/ExperimentFileReader
-    """
+
+
     print('Exporting bin of ' + str(index))
     data = pd.read_hdf(exp_path,'bin' + str(index))
     data.to_pickle(new_path);

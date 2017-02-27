@@ -10,17 +10,10 @@ def get_node_file( exp_path, node_index, type_log = True):
     Given experiment file and node index returns a panda dataframe of log or bin file. 
     Binary files are not stored in a usable way yet.
     
-<<<<<<< HEAD
-    Arguments:
-        path -- path to experiment file
-        node_index -- index starts at 0, index of node to get file from
-        type_log -- if true log file is returned, false bin file is returned
-=======
     |  Arguments:
     |      exp_path -- path to experiment file
     |      node_index --  index of node to get file from, 0 or greater
     |      type_log -- if true log file is returned, false bin file is returned
->>>>>>> refs/heads/ExperimentFileReader
     '''
     type = 'log' if  type_log else 'bin' 
     return pd.read_hdf(exp_path, type + str(node_index) )
