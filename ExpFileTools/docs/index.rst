@@ -8,6 +8,9 @@ WOT's documentation!
 
 File Tools
 ----------
+These tools are the general interface for reading, modifying, and exporting experiment files. They all depend on 
+numpy and pandas libraries.
+
 .. toctree::
    :maxdepth: 2
    :titlesonly:
