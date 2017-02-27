@@ -60,7 +60,7 @@ def generate_experiment_file(new_path, node_list, exp_notes='', overwrite = Fals
     
     |  Arguments:
     |      new_path -- Path to new experiment file, file extension must end in .h5
-    |          , example ../file/newfile.h5
+    |          , example ..\\\\file\\\\newfile.h5
     |      node_list -- Node or Array of Nodes, it is acceptable for node to not have log, bin
     |          , or metadata (master/slave)
     |      exp_notes -- string to be stored in file as experiment notes (default = '')

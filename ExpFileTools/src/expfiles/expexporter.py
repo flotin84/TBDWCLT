@@ -15,8 +15,8 @@ def export_log(exp_path, dir_path ,node_index, file_name=''):
    
     |  Arguments:
     |      exp_path -- path to experiment file
-    |      dir_path -- path to directory to place exported file, ex C:\User\Jack\exported_files 
-    |          or c:\User\Jack\exported_files\ or ..\files <- slashes dont show in docs
+    |      dir_path -- path to directory to place exported file, ex C:\\\\User\\\\Jack\\\\exported_files 
+    |          or C:\\\\User\\\\Jack\\\\exported_files\\\\ or ..\\\\files  use single slashes
     |      index -- index of node to export, 0 or greater. 
     |      file_name -- if no file name is given the original log file name is used
     """
