@@ -10,8 +10,8 @@ WOT's documentation!
    :maxdepth: 2
    :caption: Contents:
 	expwriter
-	
-	
+	expreader
+	expexporter
 
 Indices and tables
 ==================

@@ -167,9 +167,10 @@ class TestExpGenerator(unittest.TestCase):
         path = self.FILE_PATH + 'testing.h5'
         expexporter.export_log(path, self.FILE_PATH+'/exported/', 0)
         self.assertTrue( os.path.isfile(self.FILE_PATH+'/exported/'+'log0.txt') )
-        expexporter.export_log(path, self.FILE_PATH+'/exported/', 1)
+        expexporter.export_log(path, self.FILE_PATH+'/exported', 1)
         self.assertTrue( os.path.isfile(self.FILE_PATH+'/exported/'+'log1.txt') )
     
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

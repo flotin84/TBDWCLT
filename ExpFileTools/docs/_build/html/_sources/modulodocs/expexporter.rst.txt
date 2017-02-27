@@ -1,6 +1,6 @@
-expwriter
-=========
-.. automodule:: expwriter
+expexporter
+===========
+.. automodule:: expexporter
 	:members:
 	
 	

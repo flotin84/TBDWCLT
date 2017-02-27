@@ -1,6 +1,6 @@
-expwriter
+expreader
 =========
-.. automodule:: expwriter
+.. automodule:: expreader
 	:members:
 	
 	
