@@ -77,15 +77,12 @@
     
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">def export_bin(exp_path, new_path ,index,file_name=&#39;&#39;):</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+
 <span class="sd">    Given path to experiment file and an index of the node in the experiment file returns DataFrame of bin</span>
 <span class="sd">    An exception will be thrown if the log file is not found experiment file</span>
 
-<span class="sd">    |  Arguments:</span>
-<span class="sd">    |      exp_path -- path to experiment file</span>
-<span class="sd">    |      new_path -- path to new log ending in file name with .bin extension</span>
-<span class="sd">    |      index -- index of node, greater than 0</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+
+
 <span class="sd">    print(&#39;Exporting bin of &#39; + str(index))</span>
 <span class="sd">    data = pd.read_hdf(exp_path,&#39;bin&#39; + str(index))</span>
 <span class="sd">    data.to_pickle(new_path);</span>

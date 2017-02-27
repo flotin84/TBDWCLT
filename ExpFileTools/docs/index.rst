@@ -6,16 +6,18 @@
 WOT's documentation!
 ====================
 
+File Tools
+----------
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-	expwriter
-	expreader
-	expexporter
+   :titlesonly:
+
+   modulodocs/expwriter
+   modulodocs/expreader
+   modulodocs/expexporter
+	
 
 Indices and tables
 ==================
 
-* :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`

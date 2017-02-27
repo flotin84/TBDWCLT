@@ -4,8 +4,8 @@ expexporter
 	:members:
 	
 	
-Indices and tables
-==================
+.. rubric:: Indices and tables 
+
 * :doc:`../index`
 * :ref:`modindex`
 * :ref:`search`
