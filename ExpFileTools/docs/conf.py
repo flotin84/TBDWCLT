@@ -23,7 +23,6 @@ import sys
 sys.path.insert(0, os.path.abspath('../src/expfiles'))
 
 
-autodoc_mock_imports = ['numpy','pandas']
 
 
 
