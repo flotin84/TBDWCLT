@@ -23,6 +23,10 @@ import sys
 sys.path.insert(0, os.path.abspath('../src/expfiles'))
 
 
+autodoc_mock_imports = ['numpy','pandas']
+
+
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
