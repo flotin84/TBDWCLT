@@ -173,12 +173,12 @@ def del_node_file(exp_path,node_index,is_log):
     |      node_index -- index of node to remove file from, 0 or greater
     |      is_log -- True to delete log, False to delete bin
     '''
-    #TODO remove type
     with pd.HDFStore(exp_path) as store:
         node_type = 'log' if is_log else 'bin'
         node_name = node_type + str(node_index)
         if '/'+node_name in store.keys():
             store.remove(node_type + str(node_index))
+
 
         
 def del_node(exp_path,node_index):
@@ -194,7 +194,9 @@ def del_node(exp_path,node_index):
     del_node_file(exp_path,node_index,True)
     del_node_file(exp_path,node_index,False)
     with pd.HDFStore(exp_path) as store:
-        types = store['types'].drop(node_index)
+        types = store['types']
+        types.index = range(types.size)#TODO make better, this fixes holes in series indexing
+        types = types.drop(node_index)
         types.index = range(types.size)
         store['types'] = types
         for key in store.keys():

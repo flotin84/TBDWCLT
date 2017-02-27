@@ -12,6 +12,37 @@ def get_exp_notes( exp_path ):
     with pd.HDFStore(exp_path) as store:
         return store['notes'][0]
 
+def has_log_file( exp_path, node_index ):
+    '''
+    Returns true if the node at node_index has log file.
+    
+    |  Arguments:
+    |      exp_path -- path to experiment file
+    |      node_index --  index of node to check for file, 0 or greater
+    '''
+    with pd.HDFStore(exp_path) as store:
+        keys = store.keys()
+        if '/log'+str(node_index) in keys:
+            return True
+        else:
+            return False
+    
+    
+def has_bin_file(exp_path, node_index):
+    '''
+    Returns true if the node at node_index has bin file.
+    
+    |  Arguments:
+    |      exp_path -- path to experiment file
+    |      node_index --  index of node to check for file, 0 or greater
+    '''
+    with pd.HDFStore(exp_path) as store:
+        keys = store.keys()
+        if '/bin'+str(node_index) in keys:
+            return True
+        else:
+            return False
+    
 #TODO: nodes can exist without log and bin this is broke
 def get_number_of_nodes(exp_path):
     '''

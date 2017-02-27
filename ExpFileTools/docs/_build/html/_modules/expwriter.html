@@ -223,12 +223,12 @@
 <span class="sd">    |      node_index -- index of node to remove file from, 0 or greater</span>
 <span class="sd">    |      is_log -- True to delete log, False to delete bin</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="c1">#TODO remove type</span>
     <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
         <span class="n">node_type</span> <span class="o">=</span> <span class="s1">&#39;log&#39;</span> <span class="k">if</span> <span class="n">is_log</span> <span class="k">else</span> <span class="s1">&#39;bin&#39;</span>
         <span class="n">node_name</span> <span class="o">=</span> <span class="n">node_type</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_index</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">node_name</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">store</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">node_type</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_index</span><span class="p">))</span></div>
+
 
         
 <div class="viewcode-block" id="del_node"><a class="viewcode-back" href="../modulodocs/expwriter.html#expwriter.del_node">[docs]</a><span class="k">def</span> <span class="nf">del_node</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_index</span><span class="p">):</span>
@@ -244,7 +244,9 @@
     <span class="n">del_node_file</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_index</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">del_node_file</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_index</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
-        <span class="n">types</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">node_index</span><span class="p">)</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="c1">#TODO make better, this fixes holes in series indexing</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">node_index</span><span class="p">)</span>
         <span class="n">types</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
         <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">types</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
