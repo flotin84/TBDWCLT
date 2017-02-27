@@ -5,7 +5,6 @@ Created on Feb 5, 2017
 '''
 import numpy as np
 import pandas as pd
-from statsmodels.stats.inter_rater import fleiss_kappa
 # create (or open) an hdf5 file and opens in append mode
 def __write_experiment_metadata():
     print('yo')

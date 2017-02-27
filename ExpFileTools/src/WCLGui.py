@@ -2,14 +2,21 @@ import sys
 import os
 import wx
 import wx.grid as gridlib
-import Gnuplot
+import matplotlib
+import numpy
+from numpy import *
 from expfiles import *
+matplotlib.use('WXAgg')
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+from matplotlib.figure import Figure
 
-class MyFrame(wx.Frame):
+class DefaultFrame(wx.Frame):
     def __init__(self, parent, id, title):
         # First, call the base class' __init__ method to create the frame
         wx.Frame.__init__(self, parent, id, title)
         self.CenterOnScreen()
+        self.SetBackgroundColour((232,239,252))
         
         # Setup our menu bar.
         menuBar = wx.MenuBar()
@@ -36,11 +43,59 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.menuSpreadsheet, id=202)
         # Default greeting
         
-        #wx.StaticText(self, -1, "Welcome. To create a new experiment file, select File->New experiment file", (10,10))
+        wx.StaticText(self, -1, "Welcome. To create a new experiment file, select File->New experiment file", (10,10))
         
-        
-    # Menu functions called on Menu Events
     def menuNew(self, event):
+        frame = NewFile(self, -1, "New experiment file")
+        #self.DefaultFrame.Hide()
+        frame.Show(True)
+            
+    def menuOpen(self, event):
+        self.tc.Remove(0, 100)
+        self.tc.WriteText("File -> Open experiment file")
+    
+    def menuSave(self, event):
+        self.tc.Remove(0, 100)
+        self.tc.WriteText("File -> Save")
+        
+    def menuSaveAs(self, event):
+        self.tc.Remove(0, 100)
+        self.tc.WriteText("File -> Save As")
+        
+    def menuPlot(self, event):
+        frame = PlotFrame(self, -1, "Plot File")
+        frame.Show(True)
+        
+       
+    def menuSpreadsheet(self, event):
+        frame = SpreadsheetFrame(None, sys.stdout)
+        frame.Show(True)
+        
+class PlotFrame(wx.Frame):
+    def __init__(self, parent, id, title):
+        wx.Frame.__init__(self, parent, id, title)
+        self.SetBackgroundColour((232,239,252))
+        self.figure = Figure()
+        self.axes = self.figure.add_subplot(111)
+        self.canvas = FigureCanvas(self, -1, self.figure)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
+        self.SetSizer(self.sizer)
+        self.Fit()
+        self.draw()
+    
+    def draw(self):
+        t = arange(0.0, 3.0, 0.01)
+        s = sin(2 * pi * t)
+        self.axes.plot(t, s)
+        
+        
+        
+class NewFile(wx.Frame):
+    def __init__(self, parent, id, title):
+        wx.Frame.__init__(self, parent, id, title)
+        self.SetBackgroundColour((232,239,252))
+        
         global numberOfNodes, nodePathList
         numberOfNodes = 1
         nodePathList = ['']
@@ -89,7 +144,7 @@ class MyFrame(wx.Frame):
                 i = i + 1
             
             expwriter.generate_experiment_file(dlg.GetPath(), node_list)
-            #print ( expreader.get_node_file(dlg.GetPath(), 1, True))
+            print ( expreader.get_node_file(dlg.GetPath(), 1, True))
         
         dlg.Destroy()
         
@@ -163,26 +218,6 @@ class MyFrame(wx.Frame):
             
         dlg.Destroy()
     
-    def menuOpen(self, event):
-        self.tc.Remove(0, 100)
-        self.tc.WriteText("File -> Open experiment file")
-    
-    def menuSave(self, event):
-        self.tc.Remove(0, 100)
-        self.tc.WriteText("File -> Save")
-        
-    def menuSaveAs(self, event):
-        self.tc.Remove(0, 100)
-        self.tc.WriteText("File -> Save As")
-        
-    def menuPlot(self, event):
-        g = Gnuplot.Gnuplot()
-        g.title("Test")
-        
-       
-    def menuSpreadsheet(self, event):
-        frame = SpreadsheetFrame(None, sys.stdout)
-        frame.Show(True)
         
 class SpreadsheetFrame(wx.Frame):
     def __init__(self, parent, log):
@@ -201,7 +236,7 @@ class MyApp(wx.App):
     def OnInit(self):
 
         # Create an instance of our customized Frame class
-        frame = MyFrame(None, -1, "Wireless Control Lab Tools")
+        frame = DefaultFrame(None, -1, "Wireless Control Lab Tools")
         frame.Show(True)
 
         # Tell wxWindows that this is our main window
