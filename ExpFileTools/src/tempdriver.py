@@ -31,4 +31,11 @@ expwriter.set_node_file(exp_path, 0, TEST_FILES_PATH + "log.txt" , True)
 # change first node to slave
 expwriter.set_node_type(exp_path,0, 'slave')
 
+print "\nNode 0 info"
+#Print some first node info
+print expreader.get_node_type(exp_path, 0)
+print expreader.get_node_file_name(exp_path, 0, True)
+print expreader.get_node_file(exp_path, 0, True)
+
+
 

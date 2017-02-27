@@ -83,19 +83,8 @@
         
     
 
-<span class="c1">#TODO: nodes can exist without log and bin this is broke</span>
-<span class="k">def</span> <span class="nf">__number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">):</span>
-    <span class="n">max_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-    <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        nodes = store.keys()</span>
-<span class="sd">        for node in nodes:</span>
-<span class="sd">            if node.startswith(&#39;/log&#39;) or node.startswith(&#39;/bin&#39;):</span>
-<span class="sd">                if int(node[-1]) &gt; max_index:</span>
-<span class="sd">                    max_index = int(node[-1])</span>
-<span class="sd">    return max_index + 1 </span>
-<span class="sd">    &#39;&#39;&#39;</span>
+
+
 
 <div class="viewcode-block" id="generate_experiment_file"><a class="viewcode-back" href="../modulodocs/expwriter.html#expwriter.generate_experiment_file">[docs]</a><span class="k">def</span> <span class="nf">generate_experiment_file</span><span class="p">(</span><span class="n">new_path</span><span class="p">,</span> <span class="n">node_list</span><span class="p">,</span> <span class="n">exp_notes</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">False</span> <span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
@@ -118,8 +107,12 @@
     <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
     
     <span class="c1">#Check if file at path already exists</span>
-    <span class="k">if</span><span class="p">(</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span> <span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File </span><span class="si">%s</span><span class="s2"> already exists, only generate new files. This error may be suppressed by passing in overwrite = True&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">new_path</span><span class="p">))</span>
+    <span class="k">if</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span> <span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">overwrite</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">new_path</span><span class="p">);</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File </span><span class="si">%s</span><span class="s2"> already exists, only generate new files. This error may be suppressed by passing in overwrite = True&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">new_path</span><span class="p">))</span>    
+    
     <span class="n">node_types</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">try</span><span class="p">:</span>            
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">node_list</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
@@ -170,14 +163,22 @@
 <span class="sd">        IOError -- if something bad happens</span>
 <span class="sd">    &#39;&#39;&#39;</span>  
     <span class="c1">#TODO: find last node index</span>
-    <span class="n">new_index</span> <span class="o">=</span> <span class="n">__number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">);</span>
+    <span class="n">new_index</span> <span class="o">=</span> <span class="n">expreader</span><span class="o">.</span><span class="n">get_number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span>
+    <span class="n">node_types</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">node_list</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_list</span><span class="p">:</span>
                 <span class="n">__write_node_files</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node</span><span class="p">,</span><span class="n">new_index</span><span class="p">)</span>
                 <span class="n">new_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">node_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_type</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">__write_node_files</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_list</span><span class="p">,</span><span class="n">new_index</span><span class="p">)</span> 
+            <span class="n">node_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node_list</span><span class="o">.</span><span class="n">node_type</span><span class="p">)</span>
+       
+        <span class="c1">#Write node types</span>
+        <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+            <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">node_types</span><span class="p">)</span> <span class="p">)</span>
+            
     <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error occurred additions might not have taken place&#39;</span><span class="p">)</span>    
         <span class="k">raise</span> <span class="n">e</span></div>
@@ -197,7 +198,7 @@
 <span class="sd">    Throws:</span>
 <span class="sd">        ValueError -- if node_index is less than 0 or larger than existing node index</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">node_index</span> <span class="o">&gt;=</span> <span class="n">__number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">node_index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">node_index</span> <span class="o">&gt;=</span> <span class="n">expreader</span><span class="o">.</span><span class="n">get_number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">node_index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;node_index out of bounds only set files for nodes that exist, used add_node() to create new node&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">is_log</span><span class="p">:</span>
         <span class="n">__write_node_files</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">log_path</span> <span class="o">=</span> <span class="n">file_path</span> <span class="p">),</span><span class="n">node_index</span><span class="p">)</span>

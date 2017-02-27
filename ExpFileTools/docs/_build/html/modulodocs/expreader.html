@@ -46,6 +46,19 @@
   <div class="section" id="module-expreader">
 <span id="expreader"></span><h1>expreader<a class="headerlink" href="#module-expreader" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
+<dt id="expreader.get_exp_notes">
+<code class="descclassname">expreader.</code><code class="descname">get_exp_notes</code><span class="sig-paren">(</span><em>exp_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#get_exp_notes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.get_exp_notes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns string of the experiment notes set when exp file was generated, there is not a 
+way to change these notes yet</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="expreader.get_node_file">
 <code class="descclassname">expreader.</code><code class="descname">get_node_file</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em>, <em>type_log=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#get_node_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.get_node_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given experiment file and node index returns a panda dataframe of log or bin file. 
@@ -84,6 +97,18 @@ before log or bin was added to experiment file. Example log1.txt or nums.bin</p>
 <div class="line-block">
 <div class="line">exp_path &#8211; path to experiment file</div>
 <div class="line">node_index &#8211; index of node to get type from, 0 or greater</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expreader.get_number_of_nodes">
+<code class="descclassname">expreader.</code><code class="descname">get_number_of_nodes</code><span class="sig-paren">(</span><em>exp_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#get_number_of_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.get_number_of_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of nodes stored in an experiment file</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file    </div>
 </div>
 </div>
 </dd></dl>

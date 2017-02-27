@@ -39,19 +39,8 @@ def __write_node_files(filepath,node,index):
         
     
 
-#TODO: nodes can exist without log and bin this is broke
-def __number_of_nodes(exp_path):
-    max_index = -1
-    with pd.HDFStore(exp_path) as store:
-        return store['types'].size
-    '''
-        nodes = store.keys()
-        for node in nodes:
-            if node.startswith('/log') or node.startswith('/bin'):
-                if int(node[-1]) > max_index:
-                    max_index = int(node[-1])
-    return max_index + 1 
-    '''
+
+
 
 def generate_experiment_file(new_path, node_list, exp_notes='', overwrite = False ):
     '''
@@ -93,7 +82,6 @@ def generate_experiment_file(new_path, node_list, exp_notes='', overwrite = Fals
         with pd.HDFStore(new_path) as store:
             store['notes'] = pd.Series(exp_notes)
             store['types'] = pd.Series(node_types)
-            print store['types']
     except IOError as e:
         if(os.path.isfile(new_path)):
             print('File created but error occured, removing created file.')
@@ -131,7 +119,7 @@ def add_nodes(exp_path,node_list):
         IOError -- if something bad happens
     '''  
     #TODO: find last node index
-    new_index = __number_of_nodes(exp_path)
+    new_index = expreader.get_number_of_nodes(exp_path)
     node_types = []
     try:
         if hasattr(node_list, '__iter__'):
@@ -166,7 +154,7 @@ def set_node_file(exp_path ,node_index, file_path, is_log):
     Throws:
         ValueError -- if node_index is less than 0 or larger than existing node index
     '''
-    if (node_index >= __number_of_nodes(exp_path) or node_index < 0):
+    if (node_index >= expreader.get_number_of_nodes(exp_path) or node_index < 0):
         raise ValueError('node_index out of bounds only set files for nodes that exist, used add_node() to create new node')
     if is_log:
         __write_node_files(exp_path,node.Node(log_path = file_path ),node_index)

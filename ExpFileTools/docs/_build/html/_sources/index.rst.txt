@@ -20,5 +20,4 @@ File Tools
 Indices and tables
 ==================
 
-* :ref:`genindex`
 * :ref:`modindex`

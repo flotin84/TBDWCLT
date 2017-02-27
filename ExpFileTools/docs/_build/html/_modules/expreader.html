@@ -45,9 +45,28 @@
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="k">def</span> <span class="nf">get_exp_notes</span><span class="p">(</span> <span class="n">exp_path</span> <span class="p">):</span>
+<div class="viewcode-block" id="get_exp_notes"><a class="viewcode-back" href="../modulodocs/expreader.html#expreader.get_exp_notes">[docs]</a><span class="k">def</span> <span class="nf">get_exp_notes</span><span class="p">(</span> <span class="n">exp_path</span> <span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns string of the experiment notes set when exp file was generated, there is not a </span>
+<span class="sd">    way to change these notes yet</span>
+<span class="sd">    </span>
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      exp_path -- path to experiment file</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;notes&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;notes&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+
+<span class="c1">#TODO: nodes can exist without log and bin this is broke</span>
+<div class="viewcode-block" id="get_number_of_nodes"><a class="viewcode-back" href="../modulodocs/expreader.html#expreader.get_number_of_nodes">[docs]</a><span class="k">def</span> <span class="nf">get_number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns the number of nodes stored in an experiment file</span>
+<span class="sd">    </span>
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      exp_path -- path to experiment file    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">max_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span></div>
 
 <div class="viewcode-block" id="get_node_file"><a class="viewcode-back" href="../modulodocs/expreader.html#expreader.get_node_file">[docs]</a><span class="k">def</span> <span class="nf">get_node_file</span><span class="p">(</span> <span class="n">exp_path</span><span class="p">,</span> <span class="n">node_index</span><span class="p">,</span> <span class="n">type_log</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>

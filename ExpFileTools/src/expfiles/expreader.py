@@ -2,8 +2,27 @@ import numpy as np
 import pandas as pd
 
 def get_exp_notes( exp_path ):
+    '''
+    Returns string of the experiment notes set when exp file was generated, there is not a 
+    way to change these notes yet
+    
+    |  Arguments:
+    |      exp_path -- path to experiment file
+    '''
     with pd.HDFStore(exp_path) as store:
         return store['notes'][0]
+
+#TODO: nodes can exist without log and bin this is broke
+def get_number_of_nodes(exp_path):
+    '''
+    Returns the number of nodes stored in an experiment file
+    
+    |  Arguments:
+    |      exp_path -- path to experiment file    
+    '''
+    max_index = -1
+    with pd.HDFStore(exp_path) as store:
+        return store['types'].size
 
 def get_node_file( exp_path, node_index, type_log = True):
     '''
