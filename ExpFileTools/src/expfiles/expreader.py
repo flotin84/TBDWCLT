@@ -1,15 +1,17 @@
 import numpy as np
 import pandas as pd
 import json
-from astropy.units import TRy
+from dask.array.core import store
 
+
+def get_exp_notes( exp_path ):
+    with pd.HDFStore(exp_path) as store:
+        return store['notes'][0]
 
 def get_node_file( path, node_index, type_log = True):
     '''
     Given experiment file and node index returns a DataFrame of log or bin file. 
     Binary files are not stored in a usable way yet.
-    
-    
     
     Arguments:
         path -- path to experiment file
@@ -27,7 +29,11 @@ def get_node_type(path, node_index):
         path -- path to experiment file
         node_index -- index starts from 0, index of node to get node type from
     '''
-    temp_store = pd.HDFStore(path);
-    metadata  = temp_store.get_storer('log'+str(node_index)).attrs.metadata
-    temp_store.close();
-    return metadata['node_type']
+    with pd.HDFStore(path) as store:
+        return store['types'][node_index]
+
+def get_node_file_name(path, node_index,is_log):
+    file_type = 'log' if is_log else 'bin'
+    with pd.HDFStore(path) as store:
+        metadata  = store.get_storer(file_type+str(node_index)).attrs.metadata
+        return metadata['file_name']
