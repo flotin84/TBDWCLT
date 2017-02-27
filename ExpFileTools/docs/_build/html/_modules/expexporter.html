@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>expexporter &#8212; WOT 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for expexporter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on Feb 6, 2017</span>
+
+<span class="sd">@author: JRC</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">expreader</span>
+
+<div class="viewcode-block" id="export_log"><a class="viewcode-back" href="../modulodocs/expexporter.html#expexporter.export_log">[docs]</a><span class="k">def</span> <span class="nf">export_log</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span> <span class="n">dir_path</span> <span class="p">,</span><span class="n">node_index</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The log file at the associated node_index is exported as a tab delimited csv with the same name it had before being</span>
+<span class="sd">    placed in the experiment file. Unless alternative file_name is specified. </span>
+<span class="sd">   </span>
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      exp_path -- path to experiment file</span>
+<span class="sd">    |      dir_path -- path to directory to place exported file, ex C:\\\\User\\\\Jack\\\\exported_files </span>
+<span class="sd">    |          or C:\\\\User\\\\Jack\\\\exported_files\\\\ or ..\\\\files  use single slashes</span>
+<span class="sd">    |      index -- index of node to export, 0 or greater. </span>
+<span class="sd">    |      file_name -- if no file name is given the original log file name is used</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exporting log of &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_index</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">file_name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">expreader</span><span class="o">.</span><span class="n">get_node_file_name</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span> <span class="n">node_index</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">dir_path</span><span class="p">)</span> 
+    <span class="k">if</span> <span class="n">full_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">full_path</span> <span class="o">=</span> <span class="n">full_path</span> <span class="o">+</span> <span class="n">file_name</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">full_path</span> <span class="o">=</span> <span class="n">full_path</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">file_name</span>    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_hdf</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="s1">&#39;log&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_index</span><span class="p">))</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">);</span><span class="c1">#TODO: check passed in names for validity on log and bin</span></div>
+    
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">def export_bin(exp_path, new_path ,index,file_name=&#39;&#39;):</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    Given path to experiment file and an index of the node in the experiment file returns DataFrame of bin</span>
+<span class="sd">    An exception will be thrown if the log file is not found experiment file</span>
+
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      exp_path -- path to experiment file</span>
+<span class="sd">    |      new_path -- path to new log ending in file name with .bin extension</span>
+<span class="sd">    |      index -- index of node, greater than 0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    print(&#39;Exporting bin of &#39; + str(index))</span>
+<span class="sd">    data = pd.read_hdf(exp_path,&#39;bin&#39; + str(index))</span>
+<span class="sd">    data.to_pickle(new_path);</span>
+<span class="sd">&#39;&#39;&#39;</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, James Caldwell, Weston Nesseler, Mark Parise, Elijah Schenkel.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

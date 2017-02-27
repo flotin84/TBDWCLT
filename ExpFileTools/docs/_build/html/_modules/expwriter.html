@@ -1,0 +1,308 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>expwriter &#8212; WOT 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for expwriter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on Feb 5, 2017</span>
+
+<span class="sd">@author: JRC</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
+<span class="kn">import</span> <span class="nn">node</span>
+<span class="kn">import</span> <span class="nn">expreader</span>
+
+<span class="c1"># create (or open) an hdf5 file and opens in append mode</span>
+<span class="k">def</span> <span class="nf">__write_node_metadata</span><span class="p">(</span><span class="n">store</span><span class="p">,</span><span class="nb">id</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="n">store</span><span class="o">.</span><span class="n">get_storer</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> 
+    
+<span class="k">def</span> <span class="nf">__write_node_files</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span><span class="n">node</span><span class="p">,</span><span class="n">index</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;writing node file...&quot;</span><span class="p">)</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">log_path</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="n">logData</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">log_path</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">logData</span><span class="p">)</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Unnamed: 7&#39;</span><span class="p">):</span>
+                <span class="k">del</span> <span class="n">logData</span><span class="p">[</span><span class="s1">&#39;Unnamed: 7&#39;</span><span class="p">]</span>
+            <span class="n">store</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)]</span> <span class="o">=</span> <span class="n">logData</span><span class="p">;</span>
+            <span class="n">__write_node_metadata</span><span class="p">(</span><span class="n">store</span><span class="p">,</span><span class="s1">&#39;log&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">__file_name</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">log_path</span><span class="p">)</span> <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Writing log&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">bin_path</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span> 
+            <span class="n">binData</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">bin_path</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <span class="n">store</span><span class="p">[</span><span class="s1">&#39;bin&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)]</span> <span class="o">=</span> <span class="n">binData</span><span class="p">;</span>
+            <span class="n">__write_node_metadata</span><span class="p">(</span><span class="n">store</span><span class="p">,</span><span class="s1">&#39;bin&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">),</span><span class="n">__file_name</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">bin_path</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Writing bin&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">e</span>
+        
+    
+
+<span class="c1">#TODO: nodes can exist without log and bin this is broke</span>
+<span class="k">def</span> <span class="nf">__number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">):</span>
+    <span class="n">max_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        nodes = store.keys()</span>
+<span class="sd">        for node in nodes:</span>
+<span class="sd">            if node.startswith(&#39;/log&#39;) or node.startswith(&#39;/bin&#39;):</span>
+<span class="sd">                if int(node[-1]) &gt; max_index:</span>
+<span class="sd">                    max_index = int(node[-1])</span>
+<span class="sd">    return max_index + 1 </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="generate_experiment_file"><a class="viewcode-back" href="../modulodocs/expwriter.html#expwriter.generate_experiment_file">[docs]</a><span class="k">def</span> <span class="nf">generate_experiment_file</span><span class="p">(</span><span class="n">new_path</span><span class="p">,</span> <span class="n">node_list</span><span class="p">,</span> <span class="n">exp_notes</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">False</span> <span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given Node or Node array this function creates hdf5 file filled with Node log files,bin files and node type(master/slave). </span>
+<span class="sd">    File must not already exist if overwrite is set to false.</span>
+<span class="sd">    </span>
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      new_path -- Path to new experiment file, file extension must end in .h5</span>
+<span class="sd">    |          , example ..\\\\file\\\\newfile.h5</span>
+<span class="sd">    |      node_list -- Node or Array of Nodes, it is acceptable for node to not have log, bin</span>
+<span class="sd">    |          , or metadata (master/slave)</span>
+<span class="sd">    |      exp_notes -- string to be stored in file as experiment notes (default = &#39;&#39;)</span>
+<span class="sd">    |      overwrite -- Boolean, if True Bypasses safegaurd against overwriting existing file (default = False)</span>
+<span class="sd">        </span>
+<span class="sd">    Throws:</span>
+<span class="sd">        IOError -- If file at path already exists or error occurs during creation. If error occurs during</span>
+<span class="sd">            creation the experiment file will not be generated. This could be due to invalid log/bin paths.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;generating...&quot;</span><span class="p">)</span><span class="c1">#TODO assert h5 extension</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="c1">#Check if file at path already exists</span>
+    <span class="k">if</span><span class="p">(</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span> <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File </span><span class="si">%s</span><span class="s2"> already exists, only generate new files. This error may be suppressed by passing in overwrite = True&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">new_path</span><span class="p">))</span>
+    <span class="n">node_types</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>            
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">node_list</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_list</span><span class="p">:</span>
+                <span class="n">__write_node_files</span><span class="p">(</span><span class="n">new_path</span><span class="p">,</span><span class="n">node</span><span class="p">,</span><span class="n">index</span><span class="p">)</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">node_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_type</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">__write_node_files</span><span class="p">(</span><span class="n">new_path</span><span class="p">,</span><span class="n">node_list</span><span class="p">,</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">node_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_type</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+            <span class="n">store</span><span class="p">[</span><span class="s1">&#39;notes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">exp_notes</span><span class="p">)</span>
+            <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">node_types</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">new_path</span><span class="p">)):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;File created but error occured, removing created file.&#39;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">new_path</span><span class="p">);</span>
+        <span class="k">raise</span> <span class="n">e</span></div>
+        
+        
+<div class="viewcode-block" id="set_node_type"><a class="viewcode-back" href="../modulodocs/expwriter.html#expwriter.set_node_type">[docs]</a><span class="k">def</span> <span class="nf">set_node_type</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_index</span><span class="p">,</span><span class="n">new_type</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Set or change the type (master,slave,&#39;&#39;) for a node in an experiment file</span>
+<span class="sd">    </span>
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      exp_path -- path to experiment file</span>
+<span class="sd">    |      node_index --  index of node to change type, 0 or greater</span>
+<span class="sd">    |      new_type -- string, type should be master, slave, or empty string)</span>
+<span class="sd">        </span>
+<span class="sd">    Throws:</span>
+<span class="sd">        ValueError -- if new_types does not equal master,slave, or empty string</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">new_type</span> <span class="o">!=</span> <span class="s1">&#39;master&#39;</span> <span class="ow">and</span> <span class="n">new_type</span> <span class="o">!=</span> <span class="s1">&#39;slave&#39;</span> <span class="ow">and</span> <span class="n">new_type</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">new_type</span> <span class="o">+</span> <span class="s1">&#39; must equal master, slave, or </span><span class="se">\&#39;\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">node_index</span><span class="p">,</span><span class="n">new_type</span><span class="p">)</span>
+        <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">types</span></div>
+        
+<div class="viewcode-block" id="add_nodes"><a class="viewcode-back" href="../modulodocs/expwriter.html#expwriter.add_nodes">[docs]</a><span class="k">def</span> <span class="nf">add_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_list</span><span class="p">):</span>   
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Appends Node or list of Nodes to the experiment file.</span>
+<span class="sd">        </span>
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      exp_path -- path to experiment file    </span>
+<span class="sd">    |      node_list --  single Node or list of Nodes to append to experiment file  </span>
+<span class="sd">        </span>
+<span class="sd">    Throws:</span>
+<span class="sd">        IOError -- if something bad happens</span>
+<span class="sd">    &#39;&#39;&#39;</span>  
+    <span class="c1">#TODO: find last node index</span>
+    <span class="n">new_index</span> <span class="o">=</span> <span class="n">__number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">);</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">node_list</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_list</span><span class="p">:</span>
+                <span class="n">__write_node_files</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node</span><span class="p">,</span><span class="n">new_index</span><span class="p">)</span>
+                <span class="n">new_index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">__write_node_files</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_list</span><span class="p">,</span><span class="n">new_index</span><span class="p">)</span> 
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error occurred additions might not have taken place&#39;</span><span class="p">)</span>    
+        <span class="k">raise</span> <span class="n">e</span></div>
+
+
+<div class="viewcode-block" id="set_node_file"><a class="viewcode-back" href="../modulodocs/expwriter.html#expwriter.set_node_file">[docs]</a><span class="k">def</span> <span class="nf">set_node_file</span><span class="p">(</span><span class="n">exp_path</span> <span class="p">,</span><span class="n">node_index</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">is_log</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Set/replace the log or bin file of an existing node. Don&#39;t use to create new nodes</span>
+<span class="sd">    use add_node() to create new nodes.</span>
+<span class="sd">    </span>
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      exp_path -- path to experiment file</span>
+<span class="sd">    |      node_index -- index of node whose file will be changed, 0 or greater</span>
+<span class="sd">    |      file_path -- path to log/bin file being added</span>
+<span class="sd">    |      is_log -- True if new file is log, False if new file is bin</span>
+<span class="sd">        </span>
+<span class="sd">    Throws:</span>
+<span class="sd">        ValueError -- if node_index is less than 0 or larger than existing node index</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">node_index</span> <span class="o">&gt;=</span> <span class="n">__number_of_nodes</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">node_index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;node_index out of bounds only set files for nodes that exist, used add_node() to create new node&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_log</span><span class="p">:</span>
+        <span class="n">__write_node_files</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">log_path</span> <span class="o">=</span> <span class="n">file_path</span> <span class="p">),</span><span class="n">node_index</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">__write_node_files</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">bin_path</span> <span class="o">=</span> <span class="n">file_path</span> <span class="p">),</span><span class="n">node_index</span><span class="p">)</span></div>
+
+    
+
+
+<div class="viewcode-block" id="del_node_file"><a class="viewcode-back" href="../modulodocs/expwriter.html#expwriter.del_node_file">[docs]</a><span class="k">def</span> <span class="nf">del_node_file</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_index</span><span class="p">,</span><span class="n">is_log</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Removes log/bin file from HDF5 file, if file doesn&#39;t exist doesn&#39;t exist nothing happens</span>
+<span class="sd">        </span>
+<span class="sd">    |  Arguments:</span>
+<span class="sd">    |      exp_path -- path to experiment file</span>
+<span class="sd">    |      node_index -- index of node to remove file from, 0 or greater</span>
+<span class="sd">    |      is_log -- True to delete log, False to delete bin</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1">#TODO remove type</span>
+    <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+        <span class="n">node_type</span> <span class="o">=</span> <span class="s1">&#39;log&#39;</span> <span class="k">if</span> <span class="n">is_log</span> <span class="k">else</span> <span class="s1">&#39;bin&#39;</span>
+        <span class="n">node_name</span> <span class="o">=</span> <span class="n">node_type</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">node_name</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">store</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">node_type</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_index</span><span class="p">))</span></div>
+
+        
+<div class="viewcode-block" id="del_node"><a class="viewcode-back" href="../modulodocs/expwriter.html#expwriter.del_node">[docs]</a><span class="k">def</span> <span class="nf">del_node</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_index</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given experiment file and node index, deletes the log and bin at that index if they exist. If no files at that index exist nothing happens.</span>
+<span class="sd">        All later nodes will be shifted down 1 index so there are no gaps in numbering. For example if file has nodes: 0,1,2 then we remove 1</span>
+<span class="sd">        -&gt; file now has nodes: 0,1 where the node at index 1 used to be at index 2</span>
+<span class="sd">        </span>
+<span class="sd">        |  Arguments:</span>
+<span class="sd">        |      exp_path -- path to experiment file</span>
+<span class="sd">        |      node_index -- index starts from 0, index of node to get removed</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">del_node_file</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_index</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">del_node_file</span><span class="p">(</span><span class="n">exp_path</span><span class="p">,</span><span class="n">node_index</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">exp_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">node_index</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">store</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">types</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/log&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/bin&#39;</span><span class="p">):</span>
+                <span class="n">current_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">current_index</span> <span class="o">&gt;</span> <span class="n">node_index</span><span class="p">:</span>
+                    <span class="n">store</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">_f_rename</span><span class="p">(</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">)</span></div>
+
+        
+<span class="k">def</span> <span class="nf">__file_name</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="s2">&quot;a/b/c&quot;</span><span class="p">)</span>
+    <span class="n">head</span><span class="p">,</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">ntpath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tail</span> <span class="ow">or</span> <span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">head</span><span class="p">)</span>        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+    
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, James Caldwell, Weston Nesseler, Mark Parise, Elijah Schenkel.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
