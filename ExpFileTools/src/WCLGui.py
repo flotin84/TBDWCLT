@@ -63,13 +63,49 @@ class DefaultFrame(wx.Frame):
         self.tc.WriteText("File -> Save As")
         
     def menuPlot(self, event):
-        frame = PlotFrame(self, -1, "Plot File")
+        frame = AnalyzeSettings(self, -1, "Plot File")
         frame.Show(True)
         
        
     def menuSpreadsheet(self, event):
         frame = SpreadsheetFrame(None, sys.stdout)
         frame.Show(True)
+        
+class AnalyzeSettings(wx.Frame):
+    def __init__(self, parent, id, title):
+        wx.Frame.__init__(self, parent, id, title)
+        self.SetBackgroundColour((232,239,252))
+        global analyze_filepath
+        # Select file
+        selectFile = wx.Button(self, -1, "Select experiment file", (15, 10))
+        self.Bind(wx.EVT_BUTTON, self.selectFileButton, selectFile)
+        # Select node
+        wx.StaticText(self, -1, "Node:", (15, 40))
+        self.ch = wx.Choice(self, -1, (55, 40), choices = ['1'])
+        # select log/bin
+        
+        # select range
+        
+        
+    def selectFileButton(self, event):
+        global analyze_filepath
+        dlg = wx.FileDialog(
+            self, message="Choose a file",
+            defaultDir=os.getcwd(), 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            analyze_filepath = dlg.GetPath()
+            analyze_nnodes = expreader.get_number_of_nodes(analyze_filepath)
+            analyze_menuchoices = 2
+            while (analyze_menuchoices <= analyze_nnodes):
+                self.ch.Append("%d" % analyze_menuchoices)
+                analyze_menuchoices += 1
+            sys.stdout.write('You selected %s\n' % dlg.GetPath())
+            
+        dlg.Destroy()
+        
         
 class PlotFrame(wx.Frame):
     def __init__(self, parent, id, title):
@@ -88,7 +124,6 @@ class PlotFrame(wx.Frame):
         t = arange(0.0, 3.0, 0.01)
         s = sin(2 * pi * t)
         self.axes.plot(t, s)
-        
         
         
 class NewFile(wx.Frame):
