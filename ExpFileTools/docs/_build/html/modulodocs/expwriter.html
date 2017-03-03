@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>expwriter &#8212; WOT 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="expreader" href="expreader.html" />
+    <link rel="prev" title="WOT’s documentation!" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="expreader.html" title="expreader"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="WOT’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">WOT 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-expwriter">
+<span id="expwriter"></span><h1>expwriter<a class="headerlink" href="#module-expwriter" title="Permalink to this headline">¶</a></h1>
+<p>Created on Feb 5, 2017</p>
+<p>&#64;author: JRC</p>
+<dl class="function">
+<dt id="expwriter.add_nodes">
+<code class="descclassname">expwriter.</code><code class="descname">add_nodes</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expwriter.html#add_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expwriter.add_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends Node or list of Nodes to the experiment file.</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file    </div>
+<div class="line">node_list &#8211;  single Node or list of Nodes to append to experiment file  </div>
+</div>
+</div>
+<dl class="docutils">
+<dt>Throws:</dt>
+<dd>IOError &#8211; if something bad happens</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="expwriter.del_node">
+<code class="descclassname">expwriter.</code><code class="descname">del_node</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expwriter.html#del_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expwriter.del_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given experiment file and node index, deletes the log and bin at that index if they exist. If no files at that index exist nothing happens.
+All later nodes will be shifted down 1 index so there are no gaps in numbering. For example if file has nodes: 0,1,2 then we remove 1
+-&gt; file now has nodes: 0,1 where the node at index 1 used to be at index 2</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211; index starts from 0, index of node to get removed</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expwriter.del_node_file">
+<code class="descclassname">expwriter.</code><code class="descname">del_node_file</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em>, <em>is_log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expwriter.html#del_node_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expwriter.del_node_file" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>Removes log/bin file from HDF5 file, if file doesn&#8217;t exist doesn&#8217;t exist nothing happens</div></blockquote>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211; index of node to remove file from, 0 or greater</div>
+<div class="line">is_log &#8211; True to delete log, False to delete bin</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expwriter.generate_experiment_file">
+<code class="descclassname">expwriter.</code><code class="descname">generate_experiment_file</code><span class="sig-paren">(</span><em>new_path</em>, <em>node_list</em>, <em>exp_notes=''</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expwriter.html#generate_experiment_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expwriter.generate_experiment_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given Node or Node array this function creates hdf5 file filled with Node log files,bin files and node type(master/slave). 
+File must not already exist if overwrite is set to false.</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">new_path &#8211; Path to new experiment file, file extension must end in .h5</div>
+<div class="line-block">
+<div class="line">, example ..\file\newfile.h5</div>
+</div>
+<div class="line">node_list &#8211; Node or Array of Nodes, it is acceptable for node to not have log, bin</div>
+<div class="line-block">
+<div class="line">, or metadata (master/slave)</div>
+</div>
+<div class="line">exp_notes &#8211; string to be stored in file as experiment notes (default = &#8216;&#8217;)</div>
+<div class="line">overwrite &#8211; Boolean, if True Bypasses safegaurd against overwriting existing file (default = False)</div>
+</div>
+</div>
+<dl class="docutils">
+<dt>Throws:</dt>
+<dd><dl class="first last docutils">
+<dt>IOError &#8211; If file at path already exists or error occurs during creation. If error occurs during</dt>
+<dd>creation the experiment file will not be generated. This could be due to invalid log/bin paths.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="expwriter.set_node_file">
+<code class="descclassname">expwriter.</code><code class="descname">set_node_file</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em>, <em>file_path</em>, <em>is_log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expwriter.html#set_node_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expwriter.set_node_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set/replace the log or bin file of an existing node. Don&#8217;t use to create new nodes
+use add_node() to create new nodes.</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211; index of node whose file will be changed, 0 or greater</div>
+<div class="line">file_path &#8211; path to log/bin file being added</div>
+<div class="line">is_log &#8211; True if new file is log, False if new file is bin</div>
+</div>
+</div>
+<dl class="docutils">
+<dt>Throws:</dt>
+<dd>ValueError &#8211; if node_index is less than 0 or larger than existing node index</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="expwriter.set_node_type">
+<code class="descclassname">expwriter.</code><code class="descname">set_node_type</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em>, <em>new_type</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expwriter.html#set_node_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expwriter.set_node_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set or change the type (master,slave,&#8217;&#8216;) for a node in an experiment file</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211;  index of node to change type, 0 or greater</div>
+<div class="line">new_type &#8211; string, type should be master, slave, or empty string)</div>
+</div>
+</div>
+<dl class="docutils">
+<dt>Throws:</dt>
+<dd>ValueError &#8211; if new_types does not equal master,slave, or empty string</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Indices and tables</p>
+<ul class="simple">
+<li><a class="reference internal" href="../index.html"><span class="doc">WOT&#8217;s documentation!</span></a></li>
+<li><a class="reference internal" href="../py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="../search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../index.html"
+                        title="previous chapter">WOT&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="expreader.html"
+                        title="next chapter">expreader</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modulodocs/expwriter.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="expreader.html" title="expreader"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="WOT’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">WOT 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, James Caldwell, Weston Nesseler, Mark Parise, Elijah Schenkel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

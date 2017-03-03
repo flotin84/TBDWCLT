@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>expreader &#8212; WOT 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="expexporter" href="expexporter.html" />
+    <link rel="prev" title="expwriter" href="expwriter.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="expexporter.html" title="expexporter"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="expwriter.html" title="expwriter"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">WOT 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-expreader">
+<span id="expreader"></span><h1>expreader<a class="headerlink" href="#module-expreader" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="expreader.get_exp_notes">
+<code class="descclassname">expreader.</code><code class="descname">get_exp_notes</code><span class="sig-paren">(</span><em>exp_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#get_exp_notes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.get_exp_notes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns string of the experiment notes set when exp file was generated, there is not a 
+way to change these notes yet</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expreader.get_node_file">
+<code class="descclassname">expreader.</code><code class="descname">get_node_file</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em>, <em>type_log=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#get_node_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.get_node_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given experiment file and node index returns a panda dataframe of log or bin file. 
+Binary files are not stored in a usable way yet.</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211;  index of node to get file from, 0 or greater</div>
+<div class="line">type_log &#8211; if true log file is returned, false bin file is returned</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expreader.get_node_file_name">
+<code class="descclassname">expreader.</code><code class="descname">get_node_file_name</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em>, <em>is_log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#get_node_file_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.get_node_file_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given path to experiment file and index of node returns string of the original file name 
+before log or bin was added to experiment file. Example log1.txt or nums.bin</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211; index of node to get file name from, 0 or greater</div>
+<div class="line">is_log &#8211; True to get log file name, false to get bin</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expreader.get_node_type">
+<code class="descclassname">expreader.</code><code class="descname">get_node_type</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#get_node_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.get_node_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given path to experiment file and index of node returns &#8216;master&#8217;, &#8216;slave&#8217;, or empty string based on stored node type</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211; index of node to get type from, 0 or greater</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expreader.get_number_of_nodes">
+<code class="descclassname">expreader.</code><code class="descname">get_number_of_nodes</code><span class="sig-paren">(</span><em>exp_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#get_number_of_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.get_number_of_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of nodes stored in an experiment file</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file    </div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expreader.has_bin_file">
+<code class="descclassname">expreader.</code><code class="descname">has_bin_file</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#has_bin_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.has_bin_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the node at node_index has bin file.</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211;  index of node to check for file, 0 or greater</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="expreader.has_log_file">
+<code class="descclassname">expreader.</code><code class="descname">has_log_file</code><span class="sig-paren">(</span><em>exp_path</em>, <em>node_index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/expreader.html#has_log_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#expreader.has_log_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the node at node_index has log file.</p>
+<div class="line-block">
+<div class="line">Arguments:</div>
+<div class="line-block">
+<div class="line">exp_path &#8211; path to experiment file</div>
+<div class="line">node_index &#8211;  index of node to check for file, 0 or greater</div>
+</div>
+</div>
+</dd></dl>
+
+<p class="rubric">Indices and tables</p>
+<ul class="simple">
+<li><a class="reference internal" href="../index.html"><span class="doc">WOT&#8217;s documentation!</span></a></li>
+<li><a class="reference internal" href="../py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="../search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="expwriter.html"
+                        title="previous chapter">expwriter</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="expexporter.html"
+                        title="next chapter">expexporter</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modulodocs/expreader.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="expexporter.html" title="expexporter"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="expwriter.html" title="expwriter"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">WOT 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, James Caldwell, Weston Nesseler, Mark Parise, Elijah Schenkel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>
