@@ -18,57 +18,18 @@ class DefaultFrame(wx.Frame):
         self.CenterOnScreen()
         self.SetBackgroundColour((232,239,252))
         
-        # Setup our menu bar.
-        menuBar = wx.MenuBar()
-
-        # File Menu Bar
-        menu1 = wx.Menu()
-        menu1.Append(101, "New Experiment File", "")
-        menu1.Append(102, "Open Experiment File", "")
-        menu1.AppendSeparator()
-        menuBar.Append(menu1, "File")
-        
-        # Analyze Menu Bar
-        menu2 = wx.Menu()
-        menu2.Append(201, "Plot experiment file", "")
-        menu2.Append(202, "Spreadsheet")
-        menuBar.Append(menu2, "Analyze")
-        
-        self.SetMenuBar(menuBar)
-        
-        # Menu Events
-        self.Bind(wx.EVT_MENU, self.menuNew, id=101)
-        self.Bind(wx.EVT_MENU, self.menuOpen, id=102)
-        self.Bind(wx.EVT_MENU, self.menuPlot, id=201)
-        self.Bind(wx.EVT_MENU, self.menuSpreadsheet, id=202)
-        # Default greeting
-        
-        wx.StaticText(self, -1, "Welcome. To create a new experiment file, select File->New experiment file", (10,10))
+        # New file and analyze file buttons
+        createExperimentFile = wx.Button(self, -1, "New experiment file", (15, 10), (350, 50))
+        self.Bind(wx.EVT_BUTTON, self.menuNew, createExperimentFile)
+        analyzeExperimentFile = wx.Button(self, -1, "Analyze experiment file", (15, 80), (350, 50))
+        self.Bind(wx.EVT_BUTTON, self.menuAnalyze, analyzeExperimentFile)
         
     def menuNew(self, event):
         frame = NewFile(self, -1, "New experiment file")
-        #self.DefaultFrame.Hide()
         frame.Show(True)
             
-    def menuOpen(self, event):
-        self.tc.Remove(0, 100)
-        self.tc.WriteText("File -> Open experiment file")
-    
-    def menuSave(self, event):
-        self.tc.Remove(0, 100)
-        self.tc.WriteText("File -> Save")
-        
-    def menuSaveAs(self, event):
-        self.tc.Remove(0, 100)
-        self.tc.WriteText("File -> Save As")
-        
-    def menuPlot(self, event):
+    def menuAnalyze(self, event):
         frame = AnalyzeSettings(self, -1, "Plot File")
-        frame.Show(True)
-        
-       
-    def menuSpreadsheet(self, event):
-        frame = SpreadsheetFrame(None, sys.stdout)
         frame.Show(True)
         
 class AnalyzeSettings(wx.Frame):
@@ -79,13 +40,55 @@ class AnalyzeSettings(wx.Frame):
         # Select file
         selectFile = wx.Button(self, -1, "Select experiment file", (15, 10))
         self.Bind(wx.EVT_BUTTON, self.selectFileButton, selectFile)
+        
         # Select node
         wx.StaticText(self, -1, "Node:", (15, 40))
         self.ch = wx.Choice(self, -1, (55, 40), choices = ['1'])
+        self.Bind(wx.EVT_CHOICE, self.nodeSelectEvent, self.ch)
+        
         # select log/bin
+        wx.StaticText(self, -1, "Log/bin:",(100, 40))
+        self.nodeselect = wx.Choice(self, -1, (150, 40), choices = ['log', 'bin'])
+        self.Bind(wx.EVT_CHOICE, self.choiceEvent, self.nodeselect)
         
-        # select range
+        # log column select
+        wx.StaticText(self, -1, "Select column", (15, 75))
+        self.columnChoice = wx.Choice(self, -1, (100, 75), choices = [])
+        self.columnChoice.Enable(False)
         
+        # Plot or spreadsheet
+        createPlot = wx.Button(self, -1, "Plot", (15, 120), (100, 40))
+        self.Bind(wx.EVT_BUTTON, self.menuPlot, createPlot)
+        createSheet = wx.Button(self, -1, "Spreadsheet", (115, 120), (100, 40))
+        self.Bind(wx.EVT_BUTTON, self.menuSpreadsheet, createSheet)
+        
+    def choiceEvent(self, event): 
+        if ((self.nodeselect.GetCurrentSelection() == 0) and (analyze_filepath != "")): #log
+            dataframe = expreader.get_node_file(analyze_filepath, int(self.ch.GetCurrentSelection()), True)
+            self.columnChoice.Clear()
+            d_list = list(dataframe)
+            for i in range(0, len(d_list)):
+                self.columnChoice.Append(d_list[i])
+            self.columnChoice.Enable(True)
+        else:
+            self.columnChoice.Enable(False)
+            
+    def nodeSelectEvent(self, event):
+        self.choiceEvent(event)
+    
+    def menuSpreadsheet(self, event):
+    # logData.as_matrix(columns=logData.columns[1:])
+    
+        frame = SpreadsheetFrame(None, sys.stdout)
+        frame.Show(True)
+    
+    def menuPlot(self, event):
+        if (self.nodeselect.GetCurrentSelection() == 0):
+            frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(analyze_filepath, int(self.ch.GetCurrentSelection()), True), columnIndex = self.columnChoice.GetCurrentSelection())
+        else:
+            frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1)
+            
+        frame.Show(True)
         
     def selectFileButton(self, event):
         global analyze_filepath
@@ -108,7 +111,7 @@ class AnalyzeSettings(wx.Frame):
         
         
 class PlotFrame(wx.Frame):
-    def __init__(self, parent, id, title):
+    def __init__(self, parent, id, title, dataframe, columnIndex):
         wx.Frame.__init__(self, parent, id, title)
         self.SetBackgroundColour((232,239,252))
         self.figure = Figure()
@@ -118,12 +121,19 @@ class PlotFrame(wx.Frame):
         self.sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
         self.SetSizer(self.sizer)
         self.Fit()
-        self.draw()
+        print("Dataframe:")
+        print(dataframe)
+        if (columnIndex != -1):
+            self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]))
+        else: #bin
+            self.draw(numpyArray = dataframe.as_matrix())
     
-    def draw(self):
-        t = arange(0.0, 3.0, 0.01)
-        s = sin(2 * pi * t)
-        self.axes.plot(t, s)
+    def draw(self, numpyArray):
+        #t = arange(0.0, 3.0, 0.01)
+        #s = sin(2 * pi * t)
+        print("numpy array:")
+        print(numpyArray)
+        self.axes.plot(numpyArray)
         
         
 class NewFile(wx.Frame):
@@ -179,7 +189,7 @@ class NewFile(wx.Frame):
                 i = i + 1
             
             expwriter.generate_experiment_file(dlg.GetPath(), node_list)
-            print ( expreader.get_node_file(dlg.GetPath(), 1, True))
+            #print ( expreader.get_node_file(dlg.GetPath(), 1, True))
         
         dlg.Destroy()
         
@@ -199,11 +209,11 @@ class NewFile(wx.Frame):
         selectedNode = int(event.GetString())
         currentIndex = 2*(selectedNode - 1)
         if (len(nodePathList) > currentIndex) and (nodePathList[currentIndex] != ''):
-            self.file_size_log.SetLabel(str(os.path.getsize(nodePathList[2*(selectedNode - 1)])/1024) + " KB")
+            self.file_size_log.SetLabel(str(os.path.getsize(nodePathList[2*(selectedNode - 1)])/1024) + " KB, %s" % nodePathList[2*(selectedNode - 1)])
         else:
             self.file_size_log.SetLabel("No file selected")
         if (len(nodePathList) > currentIndex + 1) and (nodePathList[currentIndex + 1] != ''):
-            self.file_size_bin.SetLabel(str(os.path.getsize(nodePathList[currentIndex + 1])/1024) + " KB")
+            self.file_size_bin.SetLabel(str(os.path.getsize(nodePathList[currentIndex + 1])/1024) + " KB, %s" % nodePathList[currentIndex + 1])
         else:
             self.file_size_bin.SetLabel("No file selected")
         
@@ -225,7 +235,7 @@ class NewFile(wx.Frame):
                 while len(nodePathList) < currentIndex:
                     nodePathList.append("")
                 nodePathList.append(dlg.GetPath())
-            self.file_size_log.SetLabel(str(os.path.getsize(dlg.GetPath())/1024) + " KB")
+            self.file_size_log.SetLabel(str(os.path.getsize(dlg.GetPath())/1024) + " KB, %s" % dlg.GetPath())
             sys.stdout.write('You selected %s\n' % dlg.GetPath())
             
         dlg.Destroy()
@@ -248,7 +258,7 @@ class NewFile(wx.Frame):
                 while len(nodePathList) < currentIndex:
                     nodePathList.append("")
                 nodePathList.append(dlg.GetPath())
-            self.file_size_bin.SetLabel(str(os.path.getsize(dlg.GetPath())/1024) + " KB")
+            self.file_size_bin.SetLabel(str(os.path.getsize(dlg.GetPath())/1024) + " KB, %s" % dlg.GetPath())
             sys.stdout.write('You selected %s\n' % dlg.GetPath())
             
         dlg.Destroy()
