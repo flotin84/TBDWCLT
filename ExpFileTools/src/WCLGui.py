@@ -77,9 +77,11 @@ class AnalyzeSettings(wx.Frame):
         self.choiceEvent(event)
     
     def menuSpreadsheet(self, event):
-    # logData.as_matrix(columns=logData.columns[1:])
-    
-        frame = SpreadsheetFrame(None, sys.stdout)
+        if (self.nodeselect.GetCurrentSelection() == 0):
+            frame = SpreadsheetFrame(None, -1, "Sheet Display", dataframe = expreader.get_node_file(analyze_filepath, int(self.ch.GetCurrentSelection()), True), columnIndex = self.columnChoice.GetCurrentSelection())
+        else:
+            frame = SpreadsheetFrame(None, -1, "Sheet Display", dataframe = expreader.get_node_file(analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1)
+            
         frame.Show(True)
     
     def menuPlot(self, event):
@@ -121,18 +123,12 @@ class PlotFrame(wx.Frame):
         self.sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
         self.SetSizer(self.sizer)
         self.Fit()
-        print("Dataframe:")
-        print(dataframe)
         if (columnIndex != -1):
             self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]))
         else: #bin
             self.draw(numpyArray = dataframe.as_matrix())
     
     def draw(self, numpyArray):
-        #t = arange(0.0, 3.0, 0.01)
-        #s = sin(2 * pi * t)
-        print("numpy array:")
-        print(numpyArray)
         self.axes.plot(numpyArray)
         
         
@@ -263,16 +259,43 @@ class NewFile(wx.Frame):
             
         dlg.Destroy()
     
-        
 class SpreadsheetFrame(wx.Frame):
-    def __init__(self, parent, log):
-      wx.Frame.__init__(self, parent, -1, "Spreadsheet Display", size=(640,480))
-      self.grid = SimpleGrid(self, log)
+    def __init__(self, parent, id, title, dataframe, columnIndex):
+        wx.Frame.__init__(self, parent, -1, "Spreadsheet Display", size=(640,480))
+        self.SetBackgroundColour((232,239,252))
+        panel = wx.Panel(self, -1)
+        if (columnIndex != -1):
+            numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1])
+        else:
+            numpyArray = dataframe.as_matrix()
+            
+        grid = Grid(panel, numpyArray)
+        
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(grid, 1, wx.EXPAND)
+        panel.SetSizer(sizer)
+        panel.Layout()
       
-class SimpleGrid(gridlib.Grid):
-    def __init__(self, parent, log):
-      gridlib.Grid.__init__(self, parent, -1)
-      self.CreateGrid(1000, 5)
+class Grid(gridlib.Grid):
+    def __init__(self, parent, data):
+        gridlib.Grid.__init__(self, parent, -1)
+        
+        table = DataTable(data)
+        self.SetTable(table, True)
+        
+class DataTable(gridlib.PyGridTableBase):
+    def __init__(self, data):
+        gridlib.PyGridTableBase.__init__(self)
+        self.data = data
+        
+    def GetNumberRows(self):
+        return self.data.shape[0]
+        
+    def GetNumberCols(self):
+        return self.data.shape[1]
+        
+    def GetValue(self, row, col):
+        return self.data[row][col]
         
 # Every wxWidgets application must have a class derived from wx.App
 class MyApp(wx.App):
