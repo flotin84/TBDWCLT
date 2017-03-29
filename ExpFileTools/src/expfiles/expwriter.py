@@ -27,7 +27,8 @@ def __write_node_files(filepath,node,index):
             __write_node_metadata(store,'log'+str(index), __file_name(node.log_path) )
             print('Writing log'+str(index))
         if(node.bin_path != ""): 
-            binData = pd.Series(np.fromfile(node.bin_path,dtype=np.uint8),dtype=np.uint8)
+            binData = pd.Series(np.fromfile(node.bin_path,dtype=np.float),dtype=np.float)
+            print binData
             store['bin'+ str(index)] = binData;
             __write_node_metadata(store,'bin'+str(index),__file_name(node.bin_path))
             print('Writing bin'+str(index))
