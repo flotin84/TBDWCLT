@@ -437,12 +437,87 @@ class SpreadsheetFrame(wx.Frame):
         panel.Layout()
       
 class Grid(gridlib.Grid):
+    #Code lifted from following link
+    #http://stackoverflow.com/questions/28509629/work-with-ctrl-c-and-ctrl-v-to-copy-and-paste-into-a-wx-grid-in-wxpython
     def __init__(self, parent, data):
         gridlib.Grid.__init__(self, parent, -1)
-        
+        wx.EVT_KEY_DOWN(self, self.OnKey)
         table = DataTable(data)
         self.SetTable(table, True)
+    
+    def OnKey(self, event):
+        # If Ctrl+C is pressed...
+        if event.ControlDown() and event.GetKeyCode() == 67:
+            self.Copy()
+            
+    def Copy(self):
+        if self.GetSelectionBlockTopLeft() == []:
+            rows = 1
+            cols = 1
+            iscell = True
+        else:
+            rows = self.GetSelectionBlockBottomRight()[0][0] - self.GetSelectionBlockTopLeft()[0][0] + 1
+            cols = self.GetSelectionBlockBottomRight()[0][1] - self.GetSelectionBlockTopLeft()[0][1] + 1
+            iscell = False
+        # data variable contain text that must be set in the clipboard
+        data = ''
+        # For each cell in selected range append the cell value in the data variable
+        # Tabs '\t' for cols and '\r' for rows
+        for r in range(rows):
+            for c in range(cols):
+                if iscell:
+                    data += str(self.GetCellValue(self.GetGridCursorRow() + r, self.GetGridCursorCol() + c))
+                else:
+                    data += str(self.GetCellValue(self.GetSelectionBlockTopLeft()[0][0] + r, self.GetSelectionBlockTopLeft()[0][1] + c))
+                if c < cols - 1:
+                    data += '\t'
+            data += '\n'
+        clipboard = wx.TextDataObject()
+        # Set data object value
+        clipboard.SetText(data)
+        # Put the data in the clipboard
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(clipboard)
+            wx.TheClipboard.Close()
+        else:
+            wx.MessageBox("Can't open the clipboard", "Error")
+            
+    '''       
+    def Paste(self):
+        print("Paste")            
+        clipboard = wx.TextDataObject()
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.GetData(clipboard)
+            wx.TheClipboard.Close()
+        else:
+            wx.MessageBox("Can't open the clipboard", "Error")
+        data = clipboard.GetText()
+        print data
+        if self.GetSelectionBlockTopLeft() == []:
+            rowstart = self.GetGridCursorRow()
+            colstart = self.GetGridCursorCol()
+        else:
+            rowstart = self.GetSelectionBlockTopLeft()[0][0]
+            colstart = self.GetSelectionBlockTopLeft()[0][1]
+        print "Starting row"
+        print rowstart
+        print "Starting col"
+        print colstart
         
+        # Convert text in a array of lines
+        for y, r in enumerate(data.splitlines()):
+            # Convert c in a array of text separated by tab
+            for x, c in enumerate(r.split('\t')):
+                print "Row: "
+                print y + rowstart
+                print "Col: "
+                print x + colstart
+                print c
+                
+                if y + rowstart < self.NumberRows and x + colstart < self.NumberCols :
+                    self.SetCellValue(rowstart + y, colstart + x, c)
+    '''
+            
 class DataTable(gridlib.PyGridTableBase):
     def __init__(self, data):
         gridlib.PyGridTableBase.__init__(self)
