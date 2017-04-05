@@ -13,10 +13,7 @@ from matplotlib.figure import Figure
 
 # TODO:
 # Export node files
-# Description box on experiment files
-# master or slave type on nodes
-# can't plot log file without selecting a column
-# disable UI elements not meant to be used yet (add new file, analyze file)
+# add description box functionality (expwriter needs work)
 
 class DefaultFrame(wx.Frame):
     def __init__(self, parent, id, title):
@@ -332,36 +329,37 @@ class PlotFrame(wx.Frame):
         
 class NewFile(wx.Frame):
     def __init__(self, parent, id, title):
-        wx.Frame.__init__(self, parent, id, title)
+        wx.Frame.__init__(self, parent, id, title, size = (475, 350))
         self.SetBackgroundColour((232,239,252))
 
         self.numberOfNodes = 1
         self.nodePathList = []
         # Description of file
-        
-        
+        wx.StaticText(self, -1, "Description of file:", (15, 8))
+        self.fileDescription = wx.TextCtrl(self, -1, "", size=(200, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER, pos = (15, 25))
+        # master/slave type
+        self.masterSlaveChoice = wx.Choice(self, -1, (95, 140), choices = ['master', 'slave'])
         # Node select box
-        wx.StaticText(self, -1, "New experiment file.", (15, 10))
-        wx.StaticText(self, -1, "Node:", (15, 40))
-        self.ch = wx.Choice(self, -1, (55, 40), choices = ['1'])
+        wx.StaticText(self, -1, "Node:", (15, 140))
+        self.ch = wx.Choice(self, -1, (55, 140), choices = ['1'])
         self.Bind(wx.EVT_CHOICE, self.NodeSelect, self.ch)
         self.ch.SetStringSelection('1')
         # Add another node
-        addNodeButton = wx.Button(self, -1, "Add another node", (100, 40))
+        addNodeButton = wx.Button(self, -1, "Add another node", (180, 140))
         self.Bind(wx.EVT_BUTTON, self.AddNode, addNodeButton)
         # Delete node
-        deleteNodeButton = wx.Button(self, -1, "Delete last node", (230, 40))
+        deleteNodeButton = wx.Button(self, -1, "Delete last node", (310, 140))
         self.Bind(wx.EVT_BUTTON, self.DeleteNode, deleteNodeButton)
         # Log and binary file select buttons
-        logButton = wx.Button(self, -1, "Select log file", (15, 70))
+        logButton = wx.Button(self, -1, "Select log file", (15, 170))
         self.Bind(wx.EVT_BUTTON, self.OnLogButton, logButton)
-        binaryButton = wx.Button(self, -1, "Select Binary file", (15, 100))
+        binaryButton = wx.Button(self, -1, "Select Binary file", (15, 200))
         self.Bind(wx.EVT_BUTTON, self.OnBinaryButton, binaryButton)
         # Size of files 
-        self.file_size_log = wx.StaticText(self, wx.ID_ANY, "No file selected", (140, 75))
-        self.file_size_bin = wx.StaticText(self, wx.ID_ANY, "No file selected", (140, 105))
+        self.file_size_log = wx.StaticText(self, wx.ID_ANY, "No file selected", (140, 175))
+        self.file_size_bin = wx.StaticText(self, wx.ID_ANY, "No file selected", (140, 205))
         # Create experiment file buttons
-        createFileButton = wx.Button(self, -1, "Save file as", (15,135))
+        createFileButton = wx.Button(self, -1, "Save file as", (15, 235))
         self.Bind(wx.EVT_BUTTON, self.createFile, createFileButton)
         
     def createFile(self, event):
@@ -379,7 +377,10 @@ class NewFile(wx.Frame):
             node_list = []
             
             while (i < self.numberOfNodes):
-                node_list.append(node.Node(self.nodePathList[2*i], self.nodePathList[2*i+1])) # third input of node type needed here
+                if (self.masterSlaveChoice.GetCurrentSelection() == 0):
+                    node_list.append(node.Node(self.nodePathList[2*i], self.nodePathList[2*i+1], 'master'))
+                else:
+                    node_list.append(node.Node(self.nodePathList[2*i], self.nodePathList[2*i+1]))
                 i = i + 1
             
             expwriter.generate_experiment_file(dlg.GetPath(), node_list)
