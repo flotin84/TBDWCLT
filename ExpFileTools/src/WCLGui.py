@@ -13,9 +13,7 @@ from matplotlib.figure import Figure
 
 # TODO:
 # Export node files
-# Modify existing experiment file
 # Description box on experiment files
-# Plot binary files correctly (Elijah)
 # master or slave type on nodes
 # can't plot log file without selecting a column
 # disable UI elements not meant to be used yet (add new file, analyze file)
@@ -64,8 +62,7 @@ class ModifySettings(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title)
         self.SetBackgroundColour((232,239,252))
-        #self.modify_filepath
-        #self.modify_nnodes
+        
         # Select file
         selectFile = wx.Button(self, -1, "Select experiment file", (15, 10))
         self.Bind(wx.EVT_BUTTON, self.selectFileButton, selectFile)
@@ -89,12 +86,12 @@ class ModifySettings(wx.Frame):
         # delete log file
         self.deleteLogButton = wx.Button(self, -1, "Delete log file", (15, 70))
         self.deleteLogButton.Enable(False)
-        #self.Bind(wx.EVT_CHOICE
+        self.Bind(wx.EVT_BUTTON, self.deleteLog, self.deleteLogButton)
         
         # select log file
         self.addLogFile = wx.Button(self, -1, "  Add log file  ", (130, 70))
         self.addLogFile.Enable(False)
-        self.Bind(wx.EVT_CHOICE, self.logFileAdd, self.addLogFile)
+        self.Bind(wx.EVT_BUTTON, self.logFileAdd, self.addLogFile)
         
         # log file size
         self.file_name_log = wx.StaticText(self, wx.ID_ANY, "", (240, 75))
@@ -105,12 +102,25 @@ class ModifySettings(wx.Frame):
         # delete binary file
         self.deleteBinButton = wx.Button(self, -1, "Delete bin file", (15, 100))
         self.deleteBinButton.Enable(False)
-        # todo: implement
+        self.Bind(wx.EVT_BUTTON, self.deleteBin, self.deleteBinButton) 
         
         # select binary file
         self.addBinFile = wx.Button(self, -1, "  Add bin file  ", (130, 100))
         self.addBinFile.Enable(False)
-        # todo: implement
+        self.Bind(wx.EVT_BUTTON, self.binFileAdd, self.addBinFile)
+        
+    def deleteBin(self, event):
+        # delete bin file of selected node
+        expwriter.del_node_file(self.modify_filepath, self.nodeChoice.GetCurrentSelection(), False)
+        # update the gui
+        self.nodeSelectEvent(self)    
+        
+    def deleteLog(self, event):
+        # delete log file of selected node
+        expwriter.del_node_file(self.modify_filepath, self.nodeChoice.GetCurrentSelection(), True)
+        # update the gui
+        self.nodeSelectEvent(self)
+        
         
     def logFileAdd(self, event):
         #add log file to selected node
@@ -122,7 +132,22 @@ class ModifySettings(wx.Frame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             expwriter.set_node_file(self.modify_filepath, self.nodeChoice.GetCurrentSelection(), dlg.GetPath(), True)
+            #update the gui
+            self.nodeSelectEvent(self)
     
+    def binFileAdd(self, event):
+        #add bin file to selected node
+        dlg = wx.FileDialog(
+            self, message="Choose a file",
+            defaultDir=os.getcwd(), 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            expwriter.set_node_file(self.modify_filepath, self.nodeChoice.GetCurrentSelection(), dlg.GetPath(), False)
+            #update the gui
+            self.nodeSelectEvent(self)
+           
     def deleteNode(self, event):
         if (self.modify_nnodes != 0):
             expwriter.del_node(self.modify_filepath, self.nodeChoice.GetCurrentSelection())
