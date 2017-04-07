@@ -437,28 +437,39 @@ class SpreadsheetFrame(wx.Frame):
         panel.Layout()
       
 class Grid(gridlib.Grid):
-    #Code lifted from following link
+    #Copy code lifted from following link
     #http://stackoverflow.com/questions/28509629/work-with-ctrl-c-and-ctrl-v-to-copy-and-paste-into-a-wx-grid-in-wxpython
+
     def __init__(self, parent, data):
         gridlib.Grid.__init__(self, parent, -1)
         wx.EVT_KEY_DOWN(self, self.OnKey)
         table = DataTable(data)
         self.SetTable(table, True)
-    
+        self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK,self.showPopupMenu)
+              
     def OnKey(self, event):
         # If Ctrl+C is pressed...
         if event.ControlDown() and event.GetKeyCode() == 67:
-            self.Copy()
-            
-    def Copy(self):
-        if self.GetSelectionBlockTopLeft() == []:
+            self.Copy(event)
+    
+    def getSelectionDimension(self):
+        if not self.IsSelection():
+            rows = 0
+            cols = 0
+        elif self.GetSelectionBlockTopLeft() == []:
             rows = 1
             cols = 1
-            iscell = True
         else:
             rows = self.GetSelectionBlockBottomRight()[0][0] - self.GetSelectionBlockTopLeft()[0][0] + 1
             cols = self.GetSelectionBlockBottomRight()[0][1] - self.GetSelectionBlockTopLeft()[0][1] + 1
-            iscell = False
+        return(rows, cols)
+    
+    def Copy(self, event):
+        rows, cols = self.getSelectionDimension()
+        if (rows == 0 and cols ==0):
+            return
+        iscell = (rows == 1 and cols == 1)
+            
         # data variable contain text that must be set in the clipboard
         data = ''
         # For each cell in selected range append the cell value in the data variable
@@ -481,42 +492,18 @@ class Grid(gridlib.Grid):
             wx.TheClipboard.Close()
         else:
             wx.MessageBox("Can't open the clipboard", "Error")
-            
-    '''       
-    def Paste(self):
-        print("Paste")            
-        clipboard = wx.TextDataObject()
-        if wx.TheClipboard.Open():
-            wx.TheClipboard.GetData(clipboard)
-            wx.TheClipboard.Close()
-        else:
-            wx.MessageBox("Can't open the clipboard", "Error")
-        data = clipboard.GetText()
-        print data
-        if self.GetSelectionBlockTopLeft() == []:
-            rowstart = self.GetGridCursorRow()
-            colstart = self.GetGridCursorCol()
-        else:
-            rowstart = self.GetSelectionBlockTopLeft()[0][0]
-            colstart = self.GetSelectionBlockTopLeft()[0][1]
-        print "Starting row"
-        print rowstart
-        print "Starting col"
-        print colstart
+    
+    
+    def showPopupMenu(self, event):       
+        menu = wx.Menu()
+        copyOption = menu.Append(wx.ID_ANY,text="Copy")
+        self.Bind(wx.EVT_MENU, self.Copy, copyOption)
+        if not self.IsSelection():
+            copyOption.Enable(False)
         
-        # Convert text in a array of lines
-        for y, r in enumerate(data.splitlines()):
-            # Convert c in a array of text separated by tab
-            for x, c in enumerate(r.split('\t')):
-                print "Row: "
-                print y + rowstart
-                print "Col: "
-                print x + colstart
-                print c
-                
-                if y + rowstart < self.NumberRows and x + colstart < self.NumberCols :
-                    self.SetCellValue(rowstart + y, colstart + x, c)
-    '''
+        self.PopupMenu(menu)
+        menu.Destroy()
+
             
 class DataTable(gridlib.PyGridTableBase):
     def __init__(self, data):
