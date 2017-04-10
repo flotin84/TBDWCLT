@@ -19,7 +19,7 @@ from matplotlib.figure import Figure
 class DefaultFrame(wx.Frame):
     def __init__(self, parent, id, title):
         # First, call the base class' __init__ method to create the frame
-        wx.Frame.__init__(self, parent, id, title)
+        wx.Frame.__init__(self, parent, id, title, size = (400,325))
         self.CenterOnScreen()
         self.SetBackgroundColour((232,239,252))
         
@@ -30,6 +30,8 @@ class DefaultFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.menuAnalyze, analyzeExperimentFile)
         modifyExperimentFile = wx.Button(self, -1, "Modify experiment file", (15, 150), (350, 50))
         self.Bind(wx.EVT_BUTTON, self.menuModify, modifyExperimentFile)
+        exportExperimentFile = wx.Button(self, -1, "Export experiment file", (15, 220), (350, 50))
+        self.Bind(wx.EVT_BUTTON, self.menuExport, exportExperimentFile)
         
     def menuNew(self, event):
         frame = NewFile(self, -1, "New experiment file")
@@ -42,6 +44,157 @@ class DefaultFrame(wx.Frame):
     def menuModify(self, event):
         frame = ModifySettings(self, -1, "Modify file")
         frame.Show(True)
+
+    def menuExport(self, event):
+        frame = ExportSettings(self, -1, "Export file")
+        frame.Show(True)
+        
+class ExportSettings(wx.Frame):
+    
+    def __init__(self, parent, id, title):
+        wx.Frame.__init__(self, parent, id, title)
+        self.SetBackgroundColour((232,239,252))
+        # Select file
+        self.selectFile = wx.Button(self, -1, "Select experiment file", (15, 10))
+        self.Bind(wx.EVT_BUTTON, self.selectFileButton, self.selectFile)
+        
+        # Select node
+        wx.StaticText(self, -1, "Node:", (15, 40))
+        self.nodeChoice = wx.Choice(self, -1, (55, 40), choices = ['1'])
+        self.Bind(wx.EVT_CHOICE, self.nodeSelectEvent, self.nodeChoice)
+        self.nodeChoice.Enable(False)
+        
+        # select log/bin
+        wx.StaticText(self, -1, "Log/bin:",(100, 40))
+        self.nodeselect = wx.Choice(self, -1, (150, 40), choices = ['log', 'bin'])
+        self.Bind(wx.EVT_CHOICE, self.choiceEvent, self.nodeselect)
+        self.export_filepath = ""
+        self.nodeselect.Enable(False)
+
+        # Export file
+        self.exportFile = wx.Button(self, -1, "Export experiment file", (15, 70))
+        self.Bind(wx.EVT_BUTTON, self.exportFileEvent, self.exportFile)
+        self.exportFile.Enable(False)
+
+        # log file size
+        self.file_name_log = wx.StaticText(self, wx.ID_ANY, "", (160, 70))
+        self.file_name_bin = wx.StaticText(self, wx.ID_ANY, "", (160, 90))
+        
+        
+
+    def exportFileEvent(self, event):
+        if self.isLog:
+            dlg = wx.FileDialog(
+                self, message="Save File As",
+                defaultDir=os.getcwd(), 
+                defaultFile=expreader.get_node_file_name(self.export_filepath, self.node, self.isLog),
+                wildcard="log",
+                style=wx.SAVE
+                )
+            dlg.SetFilterIndex(2)
+
+            self.nodePathList = ['']
+
+            currentIndex = 2 * int(self.nodeChoice.GetCurrentSelection()) + 1
+            if dlg.ShowModal() == wx.ID_OK:
+                if len(self.nodePathList) == currentIndex:
+                    self.nodePathList.append(dlg.GetPath())
+                elif len(self.nodePathList) >= currentIndex:
+                    self.nodePathList[currentIndex] = dlg.GetPath()
+                else:
+                    while len(self.nodePathList) < currentIndex:
+                        self.nodePathList.append("")
+                    self.nodePathList.append(dlg.GetPath())
+                i = 0
+                node_list = []
+            expexporter.export_log(self.export_filepath,dlg.GetPath(), self.node)
+
+        else:
+        
+            dlg = wx.FileDialog(
+                self, message="Save File As",
+                defaultDir=os.getcwd(), 
+                defaultFile=expreader.get_node_file_name(self.export_filepath, self.node, self.isLog),
+                wildcard=".bin",
+                style=wx.SAVE
+                )
+            dlg.SetFilterIndex(2)
+
+            self.nodePathList = ['']
+
+            currentIndex = 2 * int(self.nodeChoice.GetCurrentSelection()) + 1
+            if dlg.ShowModal() == wx.ID_OK:
+                if len(self.nodePathList) == currentIndex:
+                    self.nodePathList.append(dlg.GetPath())
+                elif len(self.nodePathList) >= currentIndex:
+                    self.nodePathList[currentIndex] = dlg.GetPath()
+                else:
+                    while len(self.nodePathList) < currentIndex:
+                        self.nodePathList.append("")
+                    self.nodePathList.append(dlg.GetPath())
+                i = 0
+                node_list = []
+            expexporter.export_bin(self.export_filepath,dlg.GetPath(), self.node)
+
+        dlg.Destroy()
+  
+    def choiceEvent(self, event):
+        self.node = int(self.nodeChoice.GetCurrentSelection())
+        if ((self.nodeselect.GetCurrentSelection() == 0) and (self.export_filepath != "")): #log
+            dataframe = expreader.get_node_file(self.export_filepath, int(self.nodeChoice.GetCurrentSelection()), True)
+            self.isLog = True
+            print self.isLog
+        else: #bin
+            dataframe = expreader.get_node_file(self.export_filepath, int(self.nodeChoice.GetCurrentSelection()), False)
+            self.isLog = False
+            print self.isLog
+            
+    def nodeSelectEvent(self, event):
+        self.choiceEvent(event)
+
+    #def enableAll(self):
+     #   self.nodeChoice.Enable(True)
+
+    def selectFileButton(self, event):
+        self.node = 1 #initial value
+        self.isLog = True #initial value
+        dlg = wx.FileDialog(
+            self, message="Choose a file",
+            defaultDir=os.getcwd(), 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            self.export_filepath = dlg.GetPath()
+            export_nnodes = expreader.get_number_of_nodes(self.export_filepath)
+            export_menuchoices = 2
+            while (export_menuchoices <= export_nnodes):
+                self.nodeChoice.Append("%d" % export_menuchoices)
+                export_menuchoices += 1
+            sys.stdout.write('You selected %s\n' % dlg.GetPath())
+            self.nodeChoice.Enable(True)
+            self.exportFile.Enable(True)
+            self.nodeselect.Enable(True)
+        #self.selectFile.SetLabel(self.export_filepath)
+            
+        dlg.Destroy()
+        
+    def nodeSelectEvent(self, event):
+        nodeIndex = int(self.nodeChoice.GetCurrentSelection())
+        # Log file name
+        if (expreader.has_log_file(self.export_filepath, nodeIndex)):
+            logFileName = expreader.get_node_file_name(self.export_filepath, nodeIndex, True)
+            #self.file_name_log.SetLabel(logFileName)
+            #self.addLogFile.SetLabel("Replace log file")
+        else:
+            self.file_name_log.SetLabel("No file")
+        # bin file name
+        if (expreader.has_bin_file(self.export_filepath, nodeIndex)):
+            binFileName = expreader.get_node_file_name(self.export_filepath, nodeIndex, False)
+            #self.file_name_bin.SetLabel(binFileName)
+            #self.addBinFile.SetLabel("Replace bin file")
+        else:
+            self.file_name_bin.SetLabel("No file")
         
 class ModifySettings(wx.Frame):
     def __init__(self, parent, id, title):
