@@ -4,6 +4,7 @@ import wx
 import wx.grid as gridlib
 import matplotlib
 import numpy
+import re
 from numpy import *
 from expfiles import *
 matplotlib.use('WXAgg')
@@ -12,8 +13,8 @@ from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
 
 # TODO:
-# Export node files
-# add description box functionality (expwriter needs work)
+# analyze needs range of coordinates
+# modify needs to show description
 
 class DefaultFrame(wx.Frame):
     def __init__(self, parent, id, title):
@@ -46,6 +47,9 @@ class ModifySettings(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title)
         self.SetBackgroundColour((232,239,252))
+        
+        self.fileDescript = wx.StaticText(self, -1, "", (15, 140))
+        
         
         # Select file
         selectFile = wx.Button(self, -1, "Select experiment file", (15, 10))
@@ -151,6 +155,9 @@ class ModifySettings(wx.Frame):
         self.deleteLogButton.Enable(True)
         self.deleteBinButton.Enable(True)
         self.addBinFile.Enable(True)
+        text = expreader.get_exp_notes(self.modify_filepath)
+        text = re.sub("(.{64})", "\\1\n", text, 0, re.DOTALL)
+        self.fileDescript.SetLabel(text)
         
     def AddNode(self, event):
         self.modify_nnodes += 1
@@ -204,6 +211,9 @@ class AnalyzeSettings(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title)
         self.SetBackgroundColour((232,239,252))
+        
+        self.fileDescript = wx.StaticText(self, -1, "", (15, 160))
+        
         # Select file
         selectFile = wx.Button(self, -1, "Select experiment file", (15, 10))
         self.Bind(wx.EVT_BUTTON, self.selectFileButton, selectFile)
@@ -239,6 +249,9 @@ class AnalyzeSettings(wx.Frame):
     def enableAll(self):
         self.ch.Enable(True)
         self.nodeselect.Enable(True)
+        text = expreader.get_exp_notes(self.analyze_filepath)
+        text = re.sub("(.{64})", "\\1\n", text, 0, re.DOTALL)
+        self.fileDescript.SetLabel(text)
         
     def choiceEvent(self, event): 
         self.logBinChosen = 1
@@ -383,7 +396,8 @@ class NewFile(wx.Frame):
                     node_list.append(node.Node(self.nodePathList[2*i], self.nodePathList[2*i+1]))
                 i = i + 1
             
-            expwriter.generate_experiment_file(dlg.GetPath(), node_list)
+            expwriter.generate_experiment_file(dlg.GetPath(), node_list, self.fileDescription.GetValue())
+            #print expreader.get_exp_notes(dlg.GetPath())
             #print ( expreader.get_node_file(dlg.GetPath(), 1, True))
         
         dlg.Destroy()
@@ -570,11 +584,5 @@ class MyApp(wx.App):
         # Return a success flag
         return True
 
-
-
 app = MyApp(0)     # Create an instance of the application class
 app.MainLoop()     # Tell it to start processing events
-
-
-
-
