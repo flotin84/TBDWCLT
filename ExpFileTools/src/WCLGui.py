@@ -404,7 +404,7 @@ class NewFile(wx.Frame):
             self.file_size_log.SetLabel(str(os.path.getsize(self.nodePathList[2*(selectedNode - 1)])/1024) + " KB, %s" % self.nodePathList[2*(selectedNode - 1)])
         else:
             self.file_size_log.SetLabel("No file selected")
-        if (len(nodePathList) > currentIndex + 1) and (self.nodePathList[currentIndex + 1] != ''):
+        if (len(self.nodePathList) > currentIndex + 1) and (self.nodePathList[currentIndex + 1] != ''):
             self.file_size_bin.SetLabel(str(os.path.getsize(self.nodePathList[currentIndex + 1])/1024) + " KB, %s" % self.nodePathList[currentIndex + 1])
         else:
             self.file_size_bin.SetLabel("No file selected")
@@ -461,10 +461,12 @@ class SpreadsheetFrame(wx.Frame):
         panel = wx.Panel(self, -1)
         if (columnIndex != -1):
             numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1])
+            columnNames = list(dataframe)[columnIndex:columnIndex+1]
         else:
             numpyArray = dataframe.as_matrix()
+            columnNames = list(dataframe)
             
-        grid = Grid(panel, numpyArray)
+        grid = Grid(panel, numpyArray, columnNames)
         
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(grid, 1, wx.EXPAND)
@@ -475,13 +477,21 @@ class Grid(gridlib.Grid):
     #Copy code lifted from following link
     #http://stackoverflow.com/questions/28509629/work-with-ctrl-c-and-ctrl-v-to-copy-and-paste-into-a-wx-grid-in-wxpython
 
-    def __init__(self, parent, data):
+    def __init__(self, parent, data,columnNames):
         gridlib.Grid.__init__(self, parent, -1)
-        wx.EVT_KEY_DOWN(self, self.OnKey)
         table = DataTable(data)
         self.SetTable(table, True)
+        
+        print columnNames
+        for i in range(len(columnNames)):
+            print self.GetColLabelValue(i) 
+            print columnNames[i]
+            table.SetColLabelValue(i, columnNames[i]) 
+            print table.GetColLabelValue(i)
+            
         self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK,self.showPopupMenu)
-              
+        wx.EVT_KEY_DOWN(self, self.OnKey)
+            
     def OnKey(self, event):
         # If Ctrl+C is pressed...
         if event.ControlDown() and event.GetKeyCode() == 67:
@@ -529,7 +539,7 @@ class Grid(gridlib.Grid):
             wx.MessageBox("Can't open the clipboard", "Error")
     
     
-    def showPopupMenu(self, event):       
+    def showPopupMenu(self, event):      
         menu = wx.Menu()
         copyOption = menu.Append(wx.ID_ANY,text="Copy")
         self.Bind(wx.EVT_MENU, self.Copy, copyOption)
