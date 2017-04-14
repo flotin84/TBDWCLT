@@ -16,6 +16,10 @@ from matplotlib.figure import Figure
 # analyze needs range of coordinates
 # modify needs to show description
 
+
+
+# this is a test comment to commit
+
 class DefaultFrame(wx.Frame):
     def __init__(self, parent, id, title):
         # First, call the base class' __init__ method to create the frame
