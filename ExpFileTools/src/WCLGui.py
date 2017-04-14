@@ -11,14 +11,12 @@ matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
+import matplotlib as mpl
 
 # TODO:
 # analyze needs range of coordinates
 # modify needs to show description
 
-
-
-# this is a test comment to commit
 
 class DefaultFrame(wx.Frame):
     def __init__(self, parent, id, title):
@@ -424,6 +422,7 @@ class AnalyzeSettings(wx.Frame):
             self.columnChoice.Enable(True)
         else:
             self.columnChoice.Enable(False)
+            self.createPlot.Enable(True)
             
     def nodeSelectEvent(self, event):
         self.nodeChosen = 1
@@ -493,7 +492,8 @@ class PlotFrame(wx.Frame):
         if (columnIndex != -1):
             self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]))
         else: #bin
-            self.draw(numpyArray = dataframe.as_matrix())
+            mpl.rcParams['agg.path.chunksize'] = 500
+            self.draw(numpyArray = dataframe.astype(float))
         
     
     def draw(self, numpyArray):
