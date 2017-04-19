@@ -3,6 +3,7 @@ import os
 import wx
 import wx.grid as gridlib
 import matplotlib
+import wx.dataview as dv
 import numpy
 import re
 from numpy import *
@@ -41,8 +42,9 @@ class DefaultFrame(wx.Frame):
         frame.Show(True)
             
     def menuAnalyze(self, event):
-        frame = AnalyzeSettings(self, -1, "Plot File")
-        frame.Show(True)
+        global analyzeframe
+        analyzeframe = AnalyzeSettings(self, -1, "Plot File")
+        analyzeframe.Show(True)
         
     def menuModify(self, event):
         frame = ModifySettings(self, -1, "Modify file")
@@ -365,10 +367,41 @@ class ModifySettings(wx.Frame):
         
 class AnalyzeSettings(wx.Frame):
     def __init__(self, parent, id, title):
-        wx.Frame.__init__(self, parent, id, title)
+        wx.Frame.__init__(self, parent, id, title, size=(620, 375))
         self.SetBackgroundColour((232,239,252))
         
         self.fileDescript = wx.StaticText(self, -1, "", (15, 160))
+        
+        # Filter 
+        filter = wx.StaticText(self, -1, "Filter data", (250, 10))
+        filter.SetFont(wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))
+        
+        # editable text boxes
+        self.value = wx.TextCtrl(self, -1, "", size=(50,20), style = wx.TE_PROCESS_ENTER, pos = (430, 70))
+        self.value.Enable(False)
+        
+        # choice for operation
+        self.operation = wx.Choice(self, -1, (370, 70), choices = ['<', '>', '=', '<=', '>='])
+        self.operation.Enable(False)
+        self.column = wx.Choice(self, -1, (250, 70), choices = [])
+        self.column.Enable(False)
+        
+        # label for text boxes and choice
+        wx.StaticText(self, -1, "Column", (250, 48))
+        wx.StaticText(self, -1, "Operation", (365, 48))
+        wx.StaticText(self, -1, "Value", (435, 48))
+        
+        # list of filters
+        self.filterList = dv.DataViewListCtrl(self, pos = (250, 105), size=(250, 200))
+        self.filterList.AppendTextColumn('column', width = 75)
+        self.filterList.AppendTextColumn('operation', width = 75)
+        self.filterList.AppendTextColumn('value', width = 100)
+        #self.Bind(wx.EVT_DATAVIEW_ITEM_CONTEXT_MENU, self.rightClickFilterList, self.filterList)
+        dv.EVT_DATAVIEW_ITEM_CONTEXT_MENU(self.filterList, -1, self.rightClickFilterList)
+        
+        # add filter button
+        self.addFilter = wx.Button(self, -1, "Add filter", (500, 67))
+        self.Bind(wx.EVT_BUTTON, self.addFilterButton, self.addFilter)
         
         # Select file
         selectFile = wx.Button(self, -1, "Select experiment file", (15, 10))
@@ -401,6 +434,43 @@ class AnalyzeSettings(wx.Frame):
         
         self.logBinChosen = 0
         self.nodeChosen = 0
+        self.Deleted = []
+        
+    def rightClickFilterList(self, event):
+        self.rightclickitem = wx.dataview.DataViewEvent.GetItem(event)
+        if (self.rightclickitem.IsOk()):
+            global analyzeframe
+            menu = wx.Menu()
+            menu.Append(1, "delete")
+            wx.EVT_MENU(menu, 1, self.deleteFilterMenuSelection)
+            
+            analyzeframe.PopupMenu(menu, event.GetPosition())
+            menu.Destroy()
+            
+    def deleteFilterMenuSelection(self, event):
+        currentID = int(self.rightclickitem.GetID())
+        i = 0
+        goodcode = 1
+        while (i < len(self.Deleted)):
+            if (self.Deleted[i] < currentID):
+                goodcode += 1
+            i += 1
+        self.filterList.DeleteItem(currentID - goodcode)
+        self.Deleted.append(currentID)
+        
+    def addFilterButton(self, event):
+        value = float(self.value.GetValue())
+        if (self.column.GetCurrentSelection() >= 0 and self.operation.GetCurrentSelection >= 0 and self.isfloat(self.value.GetValue())):
+            data = [self.column.GetString(self.column.GetCurrentSelection()), self.operation.GetString(self.operation.GetCurrentSelection()), self.value.GetValue()]
+            self.filterList.AppendItem(data)
+        
+    def isfloat(self, value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+        
         
     def enableAll(self):
         self.ch.Enable(True)
@@ -408,6 +478,8 @@ class AnalyzeSettings(wx.Frame):
         text = expreader.get_exp_notes(self.analyze_filepath)
         text = re.sub("(.{64})", "\\1\n", text, 0, re.DOTALL)
         self.fileDescript.SetLabel(text)
+        self.value.Enable(True)
+        self.operation.Enable(True)
         
     def choiceEvent(self, event): 
         self.logBinChosen = 1
@@ -420,9 +492,12 @@ class AnalyzeSettings(wx.Frame):
             d_list = list(dataframe)
             for i in range(0, len(d_list)):
                 self.columnChoice.Append(d_list[i])
+                self.column.Append(d_list[i])
             self.columnChoice.Enable(True)
+            self.column.Enable(True)
         else:
             self.columnChoice.Enable(False)
+            self.column.Enable(False)
             self.createPlot.Enable(True)
             
     def nodeSelectEvent(self, event):
@@ -436,9 +511,12 @@ class AnalyzeSettings(wx.Frame):
             d_list = list(dataframe)
             for i in range(0, len(d_list)):
                 self.columnChoice.Append(d_list[i])
+                self.column.Append(d_list[i])
             self.columnChoice.Enable(True)
+            self.column.Enable(True)
         else:
             self.columnChoice.Enable(False)
+            self.column.Enable(False)
     
     def menuSpreadsheet(self, event):
         if (self.nodeselect.GetCurrentSelection() == 0):
@@ -613,7 +691,7 @@ class NewFile(wx.Frame):
             elif len(self.nodePathList) >= currentIndex:
                     self.nodePathList[currentIndex] = dlg.GetPath()
             else:
-                while len(nodePathList) < currentIndex:
+                while len(self.nodePathList) < currentIndex:
                     self.nodePathList.append("")
                 self.nodePathList.append(dlg.GetPath())
             self.file_size_bin.SetLabel(str(os.path.getsize(dlg.GetPath())/1024) + " KB, %s" % dlg.GetPath())
