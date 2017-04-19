@@ -12,6 +12,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 # TODO:
 # analyze needs range of coordinates
@@ -477,7 +478,7 @@ class AnalyzeSettings(wx.Frame):
         
 class PlotFrame(wx.Frame):
     def __init__(self, parent, id, title, dataframe, columnIndex):
-        wx.Frame.__init__(self, parent, id, title)
+        '''wx.Frame.__init__(self, parent, id, title)
         self.SetBackgroundColour((232,239,252))
         self.figure = Figure()
         self.axes = self.figure.add_subplot(111)
@@ -488,7 +489,7 @@ class PlotFrame(wx.Frame):
         figPan = zp.pan_factory(self.axes)
         self.sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
         self.SetSizer(self.sizer)
-        self.Fit()
+        self.Fit()'''
         if (columnIndex != -1):
             self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]))
         else: #bin
@@ -497,7 +498,11 @@ class PlotFrame(wx.Frame):
         
     
     def draw(self, numpyArray):
-        self.axes.plot(numpyArray)
+        plt.figure(1)
+        plt.subplot(111)
+        plt.plot(numpyArray)
+        plt.show()
+        #self.axes.plot(numpyArray)
         
 class ZoomPan:
     '''
