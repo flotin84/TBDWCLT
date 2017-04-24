@@ -5,6 +5,7 @@ import wx.grid as gridlib
 import matplotlib
 import wx.dataview as dv
 import numpy
+import inspect
 import re
 from numpy import *
 from expfiles import *
@@ -16,8 +17,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 # TODO:
-# analyze needs range of coordinates
 # modify needs to show description
+
+# choose x-axis (plot vs time instead of index)
 
 
 class DefaultFrame(wx.Frame):
@@ -396,7 +398,6 @@ class AnalyzeSettings(wx.Frame):
         self.filterList.AppendTextColumn('column', width = 75)
         self.filterList.AppendTextColumn('operation', width = 75)
         self.filterList.AppendTextColumn('value', width = 100)
-        #self.Bind(wx.EVT_DATAVIEW_ITEM_CONTEXT_MENU, self.rightClickFilterList, self.filterList)
         dv.EVT_DATAVIEW_ITEM_CONTEXT_MENU(self.filterList, -1, self.rightClickFilterList)
         
         # add filter button
@@ -420,21 +421,26 @@ class AnalyzeSettings(wx.Frame):
         self.nodeselect.Enable(False)
         
         # log column select
-        wx.StaticText(self, -1, "Select column", (15, 75))
+        wx.StaticText(self, -1, "Y-Axis", (15, 75))
         self.columnChoice = wx.Choice(self, -1, (100, 75), choices = [])
         self.columnChoice.Enable(False)
         
+        # x axis
+        wx.StaticText(self, -1, "X-Axis", (15, 100))
+        self.xaxisChoice = wx.Choice(self, -1, (100, 100), choices = ['Index'])
+        self.xaxisChoice.Enable(False)
+        
         # Plot or spreadsheet
-        self.createPlot = wx.Button(self, -1, "Plot", (15, 120), (100, 40))
+        self.createPlot = wx.Button(self, -1, "Plot", (15, 155), (100, 65))
         self.Bind(wx.EVT_BUTTON, self.menuPlot, self.createPlot)
         self.createPlot.Enable(False)
-        self.createSheet = wx.Button(self, -1, "Spreadsheet", (115, 120), (100, 40))
+        self.createSheet = wx.Button(self, -1, "Spreadsheet", (115, 155), (100, 65))
         self.Bind(wx.EVT_BUTTON, self.menuSpreadsheet, self.createSheet)
         self.createSheet.Enable(False)
         
         self.logBinChosen = 0
         self.nodeChosen = 0
-        self.Deleted = []
+        self.filterItemCount = 0
         
     def rightClickFilterList(self, event):
         self.rightclickitem = wx.dataview.DataViewEvent.GetItem(event)
@@ -448,21 +454,15 @@ class AnalyzeSettings(wx.Frame):
             menu.Destroy()
             
     def deleteFilterMenuSelection(self, event):
-        currentID = int(self.rightclickitem.GetID())
-        i = 0
-        goodcode = 1
-        while (i < len(self.Deleted)):
-            if (self.Deleted[i] < currentID):
-                goodcode += 1
-            i += 1
-        self.filterList.DeleteItem(currentID - goodcode)
-        self.Deleted.append(currentID)
+        self.filterList.DeleteItem(self.filterList.ItemToRow(self.rightclickitem))
+        self.filterItemCount += -1
         
     def addFilterButton(self, event):
         value = float(self.value.GetValue())
         if (self.column.GetCurrentSelection() >= 0 and self.operation.GetCurrentSelection >= 0 and self.isfloat(self.value.GetValue())):
             data = [self.column.GetString(self.column.GetCurrentSelection()), self.operation.GetString(self.operation.GetCurrentSelection()), self.value.GetValue()]
             self.filterList.AppendItem(data)
+            self.filterItemCount += 1
         
     def isfloat(self, value):
         try:
@@ -489,15 +489,21 @@ class AnalyzeSettings(wx.Frame):
         if ((self.nodeselect.GetCurrentSelection() == 0) and (self.analyze_filepath != "")): #log
             dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
             self.columnChoice.Clear()
+            self.column.Clear()
+            self.xaxisChoice.Clear()
+            self.xaxisChoice.Append('Index')
             d_list = list(dataframe)
             for i in range(0, len(d_list)):
                 self.columnChoice.Append(d_list[i])
                 self.column.Append(d_list[i])
+                self.xaxisChoice.Append(d_list[i])
             self.columnChoice.Enable(True)
             self.column.Enable(True)
+            self.xaxisChoice.Enable(True)
         else:
             self.columnChoice.Enable(False)
             self.column.Enable(False)
+            self.xaxisChoice.Enable(False)
             self.createPlot.Enable(True)
             
     def nodeSelectEvent(self, event):
@@ -508,19 +514,30 @@ class AnalyzeSettings(wx.Frame):
         if ((self.nodeselect.GetCurrentSelection() == 0) and (self.analyze_filepath != "")): #log
             dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
             self.columnChoice.Clear()
+            self.column.Clear()
+            self.xaxisChoice.Clear()
+            self.xaxisChoice.Append('Index')
             d_list = list(dataframe)
             for i in range(0, len(d_list)):
                 self.columnChoice.Append(d_list[i])
                 self.column.Append(d_list[i])
+                self.xaxisChoice.Append(d_list[i])
             self.columnChoice.Enable(True)
             self.column.Enable(True)
+            self.xaxisChoice.Enable(True)
         else:
             self.columnChoice.Enable(False)
             self.column.Enable(False)
+            self.xaxisChoice.Enable(False)
     
     def menuSpreadsheet(self, event):
         if (self.nodeselect.GetCurrentSelection() == 0):
-            frame = SpreadsheetFrame(None, -1, "Sheet Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True), columnIndex = self.columnChoice.GetCurrentSelection())
+            df = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
+
+            # https://docs.scipy.org/doc/numpy/reference/generated/numpy.where.html
+            
+            
+            frame = SpreadsheetFrame(None, -1, "Sheet Display", dataframe = df, columnIndex = self.columnChoice.GetCurrentSelection())
         else:
             frame = SpreadsheetFrame(None, -1, "Sheet Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1)
             
@@ -528,7 +545,37 @@ class AnalyzeSettings(wx.Frame):
     
     def menuPlot(self, event):
         if (self.nodeselect.GetCurrentSelection() == 0):
-            frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True), columnIndex = self.columnChoice.GetCurrentSelection())
+            df = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
+            
+            # xaxis
+            # dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1])
+            differentAxis = 0
+            xaxesIndex = 0
+            if self.xaxisChoice.GetCurrentSelection() > 0:
+                differentAxis = df[self.xaxisChoice.GetString(self.xaxisChoice.GetCurrentSelection())]
+                xaxesIndex = 1
+            
+            numcols = 2 #0=data, 1=operation, 2=value
+            data = 0
+            operation = 1
+            value = 2
+            
+            for row in range(self.filterItemCount): # Loop over all filters
+                if (self.filterList.GetTextValue(row, data) == self.columnChoice.GetString(self.columnChoice.GetCurrentSelection())): # same data
+                    op = self.filterList.GetTextValue(row, operation)
+                    if op == '<':
+                        df = df[df[self.filterList.GetTextValue(row, data)] < int(self.filterList.GetTextValue(row, value))]
+                    elif op == '>':
+                        df = df[df[self.filterList.GetTextValue(row, data)] > int(self.filterList.GetTextValue(row, value))]
+                    elif op == '=':
+                        df = df[df[self.filterList.GetTextValue(row, data)] == int(self.filterList.GetTextValue(row, value))]
+                    elif op == '<=':
+                        df = df[df[self.filterList.GetTextValue(row, data)] <= int(self.filterList.GetTextValue(row, value))]
+                    elif op == '>=':
+                        df = df[df[self.filterList.GetTextValue(row, data)] >= int(self.filterList.GetTextValue(row, value))]
+
+                        
+            frame = PlotFrame(None, -1, "Plot Display", dataframe = df, columnIndex = self.columnChoice.GetCurrentSelection(), xaxis = differentAxis, xaxisIndex = xaxesIndex)
         else:
             frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1)
             
@@ -555,20 +602,33 @@ class AnalyzeSettings(wx.Frame):
         
         
 class PlotFrame(wx.Frame):
-    def __init__(self, parent, id, title, dataframe, columnIndex):
+    def __init__(self, parent, id, title, dataframe, columnIndex, xaxis, xaxisIndex):
         if (columnIndex != -1):#log
-            self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]))
+            self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]), xaxis = xaxis, xaxisIndex = xaxisIndex)
         else: #bin
             mpl.rcParams['agg.path.chunksize'] = 500
             self.draw(numpyArray = dataframe.astype(float))
         
     
-    def draw(self, numpyArray):
+    def draw(self, numpyArray, xaxis, xaxisIndex):
         plt.figure(1)
         plt.subplot(111)
-        plt.plot(numpyArray)
+        if (xaxisIndex == 1):
+            try:
+                plt.plot(xaxis, numpyArray)
+            except Exception:
+                error = wx.MessageDialog(analyzeframe, 'Error: axis have different number of data points\nTry removing filter or filtering both sets of data',
+                               'Error',
+                               wx.OK
+                               )
+                error.ShowModal()
+                error.Destroy()
+                
+        else:
+            plt.plot(numpyArray)
         plt.show()
-        #self.axes.plot(numpyArray)
+        #self.axes.plot(numpyArray
+        
         
 
 class NewFile(wx.Frame):
