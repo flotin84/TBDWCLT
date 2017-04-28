@@ -19,8 +19,6 @@ import matplotlib.pyplot as plt
 # TODO:
 # modify needs to show description
 
-# choose x-axis (plot vs time instead of index)
-
 
 class DefaultFrame(wx.Frame):
     def __init__(self, parent, id, title):
@@ -577,7 +575,7 @@ class AnalyzeSettings(wx.Frame):
                         
             frame = PlotFrame(None, -1, "Plot Display", dataframe = df, columnIndex = self.columnChoice.GetCurrentSelection(), xaxis = differentAxis, xaxisIndex = xaxesIndex)
         else:
-            frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1)
+            frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1, xaxis = 0, xaxisIndex = 0)
             
         frame.Show(True)
         
@@ -607,7 +605,7 @@ class PlotFrame(wx.Frame):
             self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]), xaxis = xaxis, xaxisIndex = xaxisIndex)
         else: #bin
             mpl.rcParams['agg.path.chunksize'] = 500
-            self.draw(numpyArray = dataframe.astype(float))
+            self.draw(numpyArray = dataframe.astype(float), xaxis=0, xaxisIndex=0)
         
     
     def draw(self, numpyArray, xaxis, xaxisIndex):
@@ -789,10 +787,13 @@ class Grid(gridlib.Grid):
         
         print columnNames
         for i in range(len(columnNames)):
-            print self.GetColLabelValue(i) 
+            #print self.GetColLabelValue(i) 
             print columnNames[i]
-            table.SetColLabelValue(i, columnNames[i]) 
-            print table.GetColLabelValue(i)
+            self.SetColLabelValue(i, columnNames[i]) 
+            #print table.GetColLabelValue(i)
+            
+        self.SetColLabelValue(0, "Custom")
+        self.SetColLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_BOTTOM)
             
         self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK,self.showPopupMenu)
         wx.EVT_KEY_DOWN(self, self.OnKey)
@@ -859,6 +860,7 @@ class DataTable(gridlib.PyGridTableBase):
     def __init__(self, data):
         gridlib.PyGridTableBase.__init__(self)
         self.data = data
+        self.SetColLabelValue(0, "Custom")
         
     def GetNumberRows(self):
         return self.data.shape[0]
