@@ -427,6 +427,11 @@ class AnalyzeSettings(wx.Frame):
         wx.StaticText(self, -1, "X-Axis", (15, 100))
         self.xaxisChoice = wx.Choice(self, -1, (100, 100), choices = ['Index'])
         self.xaxisChoice.Enable(False)
+
+        # Bin choices
+        wx.StaticText(self, -1, "Bin Choices", (15, 125))
+        self.binChoice = wx.Choice(self, -1, (100, 125), choices = ['Ampiltude','Phase','I vs Q'])
+        self.binChoice.Enable(False)
         
         # Plot or spreadsheet
         self.createPlot = wx.Button(self, -1, "Plot", (15, 155), (100, 65))
@@ -497,11 +502,13 @@ class AnalyzeSettings(wx.Frame):
                 self.xaxisChoice.Append(d_list[i])
             self.columnChoice.Enable(True)
             self.column.Enable(True)
+            self.binChoice.Enable(False)
             self.xaxisChoice.Enable(True)
         else:
             self.columnChoice.Enable(False)
             self.column.Enable(False)
             self.xaxisChoice.Enable(False)
+            self.binChoice.Enable(True)
             self.createPlot.Enable(True)
             
     def nodeSelectEvent(self, event):
@@ -601,15 +608,25 @@ class AnalyzeSettings(wx.Frame):
         
 class PlotFrame(wx.Frame):
     def __init__(self, parent, id, title, dataframe, columnIndex, xaxis, xaxisIndex):
+        self.dataframe = dataframe
+        self.columnIndex = columnIndex
         if (columnIndex != -1):#log
             self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]), xaxis = xaxis, xaxisIndex = xaxisIndex)
+            #sheet = SpreadsheetFrame(None, -1, "Sheet Display", dataframe, columnIndex)
         else: #bin
             mpl.rcParams['agg.path.chunksize'] = 500
             self.draw(numpyArray = dataframe.astype(float), xaxis=0, xaxisIndex=0)
         
     
     def draw(self, numpyArray, xaxis, xaxisIndex):
-        plt.figure(1)
+        def onclick(event):
+            if event.dblclick:
+                print(event.xdata, event.ydata)
+                if (self.columnIndex != -1):
+                    frame = SpreadsheetFrame(None, -1, "Sheet Display", self.dataframe, self.columnIndex)
+                    frame.Show(True)
+            
+        fig = plt.figure(1)
         plt.subplot(111)
         if (xaxisIndex == 1):
             try:
@@ -624,6 +641,7 @@ class PlotFrame(wx.Frame):
                 
         else:
             plt.plot(numpyArray)
+        fig.canvas.mpl_connect('button_press_event', onclick)
         plt.show()
         #self.axes.plot(numpyArray
         
