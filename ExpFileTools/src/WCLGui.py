@@ -430,7 +430,7 @@ class AnalyzeSettings(wx.Frame):
 
         # Bin choices
         wx.StaticText(self, -1, "Bin Choices", (15, 125))
-        self.binChoice = wx.Choice(self, -1, (100, 125), choices = ['Ampiltude','Phase','I vs Q'])
+        self.binChoice = wx.Choice(self, -1, (100, 125), choices = ['Ampiltude']) #,'Phase','I vs Q'])
         self.binChoice.Enable(False)
         
         # Plot or spreadsheet
@@ -580,12 +580,10 @@ class AnalyzeSettings(wx.Frame):
                         df = df[df[self.filterList.GetTextValue(row, data)] >= int(self.filterList.GetTextValue(row, value))]
 
                         
-            frame = PlotFrame(None, -1, "Plot Display", dataframe = df, columnIndex = self.columnChoice.GetCurrentSelection(), xaxis = differentAxis, xaxisIndex = xaxesIndex)
+            frame = PlotFrame(None, -1, "Plot Display", dataframe = df, columnIndex = self.columnChoice.GetCurrentSelection(), xaxis = differentAxis, xaxisIndex = xaxesIndex, bintype = self.binChoice)
         else:
-            frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1, xaxis = 0, xaxisIndex = 0)
+            frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1, xaxis = 0, xaxisIndex = 0, bintype = self.binChoice.GetCurrentSelection())
             
-        frame.Show(True)
-        
     def selectFileButton(self, event):
         dlg = wx.FileDialog(
             self, message="Choose a file",
@@ -607,16 +605,34 @@ class AnalyzeSettings(wx.Frame):
         
         
 class PlotFrame(wx.Frame):
-    def __init__(self, parent, id, title, dataframe, columnIndex, xaxis, xaxisIndex):
+    def __init__(self, parent, id, title, dataframe, columnIndex, xaxis, xaxisIndex, bintype):
         self.dataframe = dataframe
         self.columnIndex = columnIndex
         if (columnIndex != -1):#log
             self.draw(numpyArray = dataframe.as_matrix(columns = dataframe.columns[columnIndex:columnIndex+1]), xaxis = xaxis, xaxisIndex = xaxisIndex)
             #sheet = SpreadsheetFrame(None, -1, "Sheet Display", dataframe, columnIndex)
         else: #bin
-            mpl.rcParams['agg.path.chunksize'] = 500
-            self.draw(numpyArray = dataframe.astype(float), xaxis=0, xaxisIndex=0)
-        
+            #Amplitude
+            if (bintype == 0):
+                mpl.rcParams['agg.path.chunksize'] = 500
+                numpyArrayReal = dataframe.astype(float)[::2]
+                numpyArrayImaginary = dataframe.astype(float)[1::2]
+                #numpyArray = numpy.absolute(numpyArrayReal*numpyArrayImaginary)
+                self.draw(numpy.absolute(dataframe), xaxis=0, xaxisIndex=0)
+                #self.draw(numpy.absolute(numpyArrayImaginary), xaxis=0, xaxisIndex=0)
+
+            #Phase
+            if (bintype == 1):
+                numpyArrayReal = dataframe.astype(float)[::2]
+                numpyArrayImaginary = dataframe.astype(float)[1::2]
+                numpyArray = numpy.arctan(numpyArrayReal/numpyArrayImaginary)
+                self.draw(numpyArray, xaxis=0, xaxisIndex=0)
+            #I vs Q
+            if (bintype == 2):
+                numpyArrayReal = dataframe.astype(float)[::2]
+                numpyArrayImaginary = dataframe.astype(float)[1::2]
+                numpyArray = numpy.absolute(numpyArrayImaginary)
+                self.draw(numpy.sqrt(numpyArray), xaxis=0, xaxisIndex=0)
     
     def draw(self, numpyArray, xaxis, xaxisIndex):
         def onclick(event):
@@ -644,6 +660,7 @@ class PlotFrame(wx.Frame):
         fig.canvas.mpl_connect('button_press_event', onclick)
         plt.show()
         #self.axes.plot(numpyArray
+        
         
         
 
