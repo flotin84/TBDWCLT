@@ -25,16 +25,18 @@ def __write_node_files(store,node,index,filepath=''):
             if (list(logData).pop() == 'Unnamed: 7'):
                 del logData['Unnamed: 7']
             #store['log'+ str(index)] = logData;
-            logData.to_hdf(filepath,'log'+ str(index),complevel=9,complib='zlib')
-            #__write_node_metadata(store,'log'+str(index), __file_name(node.log_path) )
+            logData.to_hdf(filepath,'log'+ str(index),complevel=3,complib='zlib')
+            with pd.HDFStore(filepath) as store:     
+                __write_node_metadata(store,'log'+str(index), __file_name(node.log_path) )
             print('Writing log'+str(index))
         if(node.bin_path != "")  : 
             binData = pd.Series(np.fromfile(node.bin_path,dtype=np.float),dtype=np.float)
             print binData
             #store['bin'+ str(index)] = binData;
             
-            binData.to_hdf(filepath,'bin'+ str(index),complevel=9,complib='zlib')
-            #__write_node_metadata(store,'bin'+str(index),__file_name(node.bin_path))
+            binData.to_hdf(filepath,'bin'+ str(index),complevel=3,complib='zlib')
+            with pd.HDFStore(filepath) as store: 
+                __write_node_metadata(store,'bin'+str(index),__file_name(node.bin_path))
             print('Writing bin'+str(index))  
     except IOError as e:
         traceback.print_exc()
@@ -161,18 +163,19 @@ def add_nodes(exp_path,node_list):
     #TODO: find last node index
     new_index = expreader.get_number_of_nodes(exp_path)
     node_types = []
-    with pd.HDFStore(exp_path) as store:
-        if hasattr(node_list, '__iter__'):
-            for node in node_list:
-                __write_node_files(store,node,new_index)
-                new_index += 1
-                node_types.append(node.node_type)
-        else:
-            __write_node_files(store,node_list,new_index) 
-            node_types.append(node_list.node_type)
+   
+    if hasattr(node_list, '__iter__'):
+        for node in node_list:
+            __write_node_files('',node,new_index,exp_path)
+            new_index += 1
+            node_types.append(node.node_type)
+    else:
+        __write_node_files('',node_list,new_index,exp_path) 
+        node_types.append(node_list.node_type)
        
         #Write node types
-        store['types'] = store['types'].append( pd.Series(node_types) )
+        with pd.HDFStore(exp_path) as store:
+            store['types'] = store['types'].append( pd.Series(node_types) )
 
 
 
@@ -192,11 +195,11 @@ def set_node_file(exp_path ,node_index, file_path, is_log):
     '''
     if (node_index >= expreader.get_number_of_nodes(exp_path) or node_index < 0):
         raise ValueError('node_index out of bounds only set files for nodes that exist, used add_node() to create new node')
-    with pd.HDFStore(exp_path) as store:
-        if is_log:
-            __write_node_files(store,node.Node(log_path = file_path ),node_index)
-        else:
-            __write_node_files(store,node.Node(bin_path = file_path ),node_index)
+    
+    if is_log:
+        __write_node_files('',node.Node(log_path = file_path ),node_index, exp_path)
+    else:
+        __write_node_files('',node.Node(bin_path = file_path ),node_index, exp_path)
 
     
 

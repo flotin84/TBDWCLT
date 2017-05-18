@@ -141,7 +141,8 @@ class ExportSettings(wx.Frame):
                 i = 0
                 node_list = []
             expexporter.export_bin(self.export_filepath,dlg.GetPath(), self.node)
-
+        
+        wx.MessageBox('Done exporting to ' + dlg.GetPath() )
         dlg.Destroy()
   
     def choiceEvent(self, event):
