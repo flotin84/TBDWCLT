@@ -9,6 +9,7 @@ import inspect
 import re
 from numpy import *
 from expfiles import *
+from astropy.vo import samp
 matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
@@ -43,7 +44,7 @@ class DefaultFrame(wx.Frame):
             
     def menuAnalyze(self, event):
         global analyzeframe
-        analyzeframe = AnalyzeSettings(self, -1, "Plot File")
+        analyzeframe = AnalyzeSettings(self, -1, "  File")
         analyzeframe.Show(True)
         
     def menuModify(self, event):
@@ -614,11 +615,22 @@ class PlotFrame(wx.Frame):
         else: #bin
             #Amplitude
             if (bintype == 0):
+                
+                plotData = dataframe
+                plotSize = dataframe.size
+                MAX_PLOT_SIZE = 10000000
+                if(plotSize > MAX_PLOT_SIZE):
+                    sampleFactor = int(math.ceil(plotSize/MAX_PLOT_SIZE))
+                    plotData = dataframe.as_matrix()[0:-1:sampleFactor]
+                    wx.MessageBox('Data exceeds max size for plot, sampling 1 in every ' + str(sampleFactor) + ' data points and plotting.')
+                
                 mpl.rcParams['agg.path.chunksize'] = 500
-                numpyArrayReal = dataframe.astype(float)[::2]
-                numpyArrayImaginary = dataframe.astype(float)[1::2]
+                #numpyArrayReal = dataframe.astype(float)[::2]
+                #numpyArrayImaginary = dataframe.astype(float)[1::2]
+                
+                self.draw(numpy.absolute(plotData), xaxis=0, xaxisIndex=0)
+                
                 #numpyArray = numpy.absolute(numpyArrayReal*numpyArrayImaginary)
-                self.draw(numpy.absolute(dataframe), xaxis=0, xaxisIndex=0)
                 #self.draw(numpy.absolute(numpyArrayImaginary), xaxis=0, xaxisIndex=0)
 
             #Phase
@@ -720,7 +732,10 @@ class NewFile(wx.Frame):
                     node_list.append(node.Node(self.nodePathList[2*i], self.nodePathList[2*i+1]))
                 i = i + 1
             
+            
             expwriter.generate_experiment_file(dlg.GetPath(), node_list, self.fileDescription.GetValue())
+            wx.MessageBox('File Generation complete for ' + dlg.GetPath() )
+
             #print expreader.get_exp_notes(dlg.GetPath())
             #print ( expreader.get_node_file(dlg.GetPath(), 1, True))
         

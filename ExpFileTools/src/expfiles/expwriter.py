@@ -5,36 +5,38 @@ Created on Feb 5, 2017
 '''
 import numpy as np
 import pandas as pd
-import os.path
+import os
+
 import traceback
 import ntpath
 import node
 import expreader
+from subprocess import call
 
 # create (or open) an hdf5 file and opens in append mode
 def __write_node_metadata(store,id, name):
     store.get_storer(id).attrs.metadata = dict(file_name=name) 
     
-def __write_node_files(filepath,node,index):
+def __write_node_files(store,node,index,filepath=''):
     print("writing node file...")
-    store = pd.HDFStore(filepath)
     try:
         if(node.log_path != ""):
             logData = pd.read_csv(node.log_path,sep='\t')
             if (list(logData).pop() == 'Unnamed: 7'):
                 del logData['Unnamed: 7']
-            store['log'+ str(index)] = logData;
-            __write_node_metadata(store,'log'+str(index), __file_name(node.log_path) )
+            #store['log'+ str(index)] = logData;
+            logData.to_hdf(filepath,'log'+ str(index),complevel=9,complib='zlib')
+            #__write_node_metadata(store,'log'+str(index), __file_name(node.log_path) )
             print('Writing log'+str(index))
-        if(node.bin_path != ""): 
+        if(node.bin_path != "")  : 
             binData = pd.Series(np.fromfile(node.bin_path,dtype=np.float),dtype=np.float)
             print binData
-            store['bin'+ str(index)] = binData;
-            __write_node_metadata(store,'bin'+str(index),__file_name(node.bin_path))
-            print('Writing bin'+str(index))
-        store.close()
+            #store['bin'+ str(index)] = binData;
+            
+            binData.to_hdf(filepath,'bin'+ str(index),complevel=9,complib='zlib')
+            #__write_node_metadata(store,'bin'+str(index),__file_name(node.bin_path))
+            print('Writing bin'+str(index))  
     except IOError as e:
-        store.close()
         traceback.print_exc()
         raise e
         
@@ -71,24 +73,61 @@ def generate_experiment_file(new_path, node_list, exp_notes='', overwrite = Fals
             raise IOError("File %s already exists, only generate new files. This error may be suppressed by passing in overwrite = True" %(new_path))    
     
     node_types = []
-    try:            
+    try:
+                
         if hasattr(node_list, '__iter__'):
             for node in node_list:
-                __write_node_files(new_path,node,index)
+                __write_node_files('',node,index,new_path)
                 index += 1
                 node_types.append(node.node_type)
         else:
-            __write_node_files(new_path,node_list,index)
+            __write_node_files('',node_list,index,new_path)
             node_types.append(node.node_type)
-        with pd.HDFStore(new_path) as store:
+        with pd.HDFStore(new_path) as store:     
             store['notes'] = pd.Series(exp_notes)
             store['types'] = pd.Series(node_types)
+        rewrite_hdf5(os.path.relpath(new_path))
+        print 'Done Rewriting'
     except IOError as e:
         if(os.path.isfile(new_path)):
-            print('File created but error occured, removing created file.')
+            print('File created but error occured, removing partially created file.')
             os.remove(new_path);
         raise e
+
         
+   
+
+
+def rewrite_hdf5(file_in):#TODO: keep track of complevel
+    '''
+    Rewrites hdf5 file specified by file_in using pytables ptrepack, reclaiming unused memory and compressing the file.
+    ptrepack typically results in better compression than compressing hdf5 files during generation. 
+    
+    |  Arguments:
+    |      file_in -- Pass in relative path to hdf5 file to be rewritten, file should end in .h5
+    Throws:
+        ValueError -- If file_in does not end in .h5
+    '''
+    print file_in
+    if( not file_in.endswith('.h5') ):
+        raise ValueError("file_in should be path that ends with .h5 extension")
+    
+    file_temp = file_in[0:-3] + '_temp.h5'
+    
+    if( os.path.isfile(file_temp) ):
+        raise IOError(file_temp + ' already exists, remove it before attempting to rewrite ' + file_in + ' again')
+    
+    
+    command = ["ptrepack", "-o", "--chunkshape=auto", "--propindexes","--complevel=9", "--complib=zlib", file_in, file_temp]
+    if( call(command) != 0 ):
+        if( os.path.isfile(file_temp) ):
+            os.remove(file_temp)
+        raise StandardError('Issue calling ptrepack cmd, can not rewrite hdf5 to reclaim unused memory')
+
+    os.remove(file_in)
+    os.rename(file_temp,file_in)
+
+    
         
 def set_node_type(exp_path,node_index,new_type):
     '''
@@ -122,23 +161,19 @@ def add_nodes(exp_path,node_list):
     #TODO: find last node index
     new_index = expreader.get_number_of_nodes(exp_path)
     node_types = []
-    try:
+    with pd.HDFStore(exp_path) as store:
         if hasattr(node_list, '__iter__'):
             for node in node_list:
-                __write_node_files(exp_path,node,new_index)
+                __write_node_files(store,node,new_index)
                 new_index += 1
                 node_types.append(node.node_type)
         else:
-            __write_node_files(exp_path,node_list,new_index) 
+            __write_node_files(store,node_list,new_index) 
             node_types.append(node_list.node_type)
        
         #Write node types
-        with pd.HDFStore(exp_path) as store:
-            store['types'] = store['types'].append( pd.Series(node_types) )
-            
-    except IOError as e:
-        print('Error occurred additions might not have taken place')    
-        raise e
+        store['types'] = store['types'].append( pd.Series(node_types) )
+
 
 
 def set_node_file(exp_path ,node_index, file_path, is_log):
@@ -157,10 +192,11 @@ def set_node_file(exp_path ,node_index, file_path, is_log):
     '''
     if (node_index >= expreader.get_number_of_nodes(exp_path) or node_index < 0):
         raise ValueError('node_index out of bounds only set files for nodes that exist, used add_node() to create new node')
-    if is_log:
-        __write_node_files(exp_path,node.Node(log_path = file_path ),node_index)
-    else:
-        __write_node_files(exp_path,node.Node(bin_path = file_path ),node_index)
+    with pd.HDFStore(exp_path) as store:
+        if is_log:
+            __write_node_files(store,node.Node(log_path = file_path ),node_index)
+        else:
+            __write_node_files(store,node.Node(bin_path = file_path ),node_index)
 
     
 
@@ -179,6 +215,7 @@ def del_node_file(exp_path,node_index,is_log):
         node_name = node_type + str(node_index)
         if '/'+node_name in store.keys():
             store.remove(node_type + str(node_index))
+    rewrite_hdf5(os.path.relpath(exp_path))#reclaim memory
 
 
         
@@ -205,7 +242,7 @@ def del_node(exp_path,node_index):
                 current_index = int(key[-1])
                 if current_index > node_index:
                     store.get_node(key)._f_rename( key[1:len(key)-1] + str(current_index - 1) )
-
+    rewrite_hdf5(os.path.relpath(exp_path))#reclaim memory
         
 def __file_name(path):
     ntpath.basename("a/b/c")
