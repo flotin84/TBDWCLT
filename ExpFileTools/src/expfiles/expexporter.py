@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 import os
 import expreader
-from IPython.testing.tools import full_path
+
 
 def export_log(exp_path, dir_path ,node_index, file_name=''):
-    """
+    '''
     The log file at the associated node_index is exported as a tab delimited csv with the same name it had before being
     placed in the experiment file. Unless alternative file_name is specified. 
    
@@ -20,17 +20,8 @@ def export_log(exp_path, dir_path ,node_index, file_name=''):
     |          or C:\\\\User\\\\Jack\\\\exported_files\\\\ or ..\\\\files  use single slashes
     |      index -- index of node to export, 0 or greater. 
     |      file_name -- if no file name is given the original log file name is used
-    """
+    '''
     print('Exporting log of ' + str(node_index))
-    '''
-    if file_name == '':
-        file_name = expreader.get_node_file_name(exp_path, node_index, True)
-    full_path = os.path.abspath(dir_path) 
-    if full_path.endswith('\\'):
-        full_path = full_path + file_name
-    else:
-        full_path = full_path + '\\' + file_name    
-    '''
     full_path = dir_path
     data = pd.read_hdf(exp_path,'log' + str(node_index))
     data.to_csv(full_path,sep='\t',index=False);#TODO: check passed in names for validity on log and bin
