@@ -416,7 +416,7 @@ class AnalyzeSettings(wx.Frame):
         
         # select log/bin
         wx.StaticText(self, -1, "Log/bin:",(100, 40))
-        self.nodeselect = wx.Choice(self, -1, (150, 40), choices = ['log', 'bin'])
+        self.nodeselect = wx.Choice(self, -1, (150, 40),(40,40))#, choices = ['log', 'bin'])
         self.Bind(wx.EVT_CHOICE, self.choiceEvent, self.nodeselect)
         self.nodeselect.Enable(False)
         
@@ -443,7 +443,7 @@ class AnalyzeSettings(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.menuSpreadsheet, self.createSheet)
         self.createSheet.Enable(False)
         
-        self.logBinChosen = 0
+        self.logBinChosen = False
         self.nodeChosen = 0
         self.filterItemCount = 0
         
@@ -487,7 +487,7 @@ class AnalyzeSettings(wx.Frame):
         self.operation.Enable(True)
         
     def choiceEvent(self, event): 
-        self.logBinChosen = 1
+        self.logBinChosen = True
         if (self.nodeChosen == 1):
             self.createPlot.Enable(True)
             self.createSheet.Enable(True)
@@ -513,11 +513,33 @@ class AnalyzeSettings(wx.Frame):
             self.binChoice.Enable(True)
             self.createPlot.Enable(True)
             
-    def nodeSelectEvent(self, event):
-        self.nodeChosen = 1
-        if (self.logBinChosen == 1):
-            self.createPlot.Enable(True)
-            self.createSheet.Enable(True)
+    def nodeSelectEvent(self, event):   
+    
+        #Only add log/bin to drop-down if the node has them
+        validFiles = []
+        if(expreader.has_log_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()))):
+            validFiles.append('log') 
+        if(expreader.has_bin_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()))):
+            validFiles.append('bin') 
+            
+        previousNodeFileSelection = self.nodeselect.GetString(self.nodeselect.GetCurrentSelection())
+        self.nodeselect.SetItems(validFiles)
+        
+        #If previous selection is still valid set selection to previous selection
+        self.logBinChosen = False
+        newSelectionIndex = self.nodeselect.FindString(previousNodeFileSelection)
+        if(newSelectionIndex != wx.NOT_FOUND):
+            self.nodeselect.SetSelection(newSelectionIndex)
+            self.logBinChosen = True
+        if(self.nodeselect.GetCount() == 1):
+            self.nodeselect.SetSelection(0)
+            self.logBinChosen = True
+
+        self.createPlot.Enable(self.logBinChosen)
+        self.createSheet.Enable(self.logBinChosen)
+            
+            
+            
         if ((self.nodeselect.GetCurrentSelection() == 0) and (self.analyze_filepath != "")): #log
             dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
             self.columnChoice.Clear()
@@ -536,6 +558,8 @@ class AnalyzeSettings(wx.Frame):
             self.columnChoice.Enable(False)
             self.column.Enable(False)
             self.xaxisChoice.Enable(False)
+        
+
     
     def menuSpreadsheet(self, event):
         if (self.nodeselect.GetCurrentSelection() == 0):
@@ -566,7 +590,8 @@ class AnalyzeSettings(wx.Frame):
             data = 0
             operation = 1
             value = 2
-            
+            print 'Before: \n'
+            print df
             for row in range(self.filterItemCount): # Loop over all filters
                 if (self.filterList.GetTextValue(row, data) == self.columnChoice.GetString(self.columnChoice.GetCurrentSelection())): # same data
                     op = self.filterList.GetTextValue(row, operation)
@@ -580,8 +605,8 @@ class AnalyzeSettings(wx.Frame):
                         df = df[df[self.filterList.GetTextValue(row, data)] <= int(self.filterList.GetTextValue(row, value))]
                     elif op == '>=':
                         df = df[df[self.filterList.GetTextValue(row, data)] >= int(self.filterList.GetTextValue(row, value))]
-
-                        
+            print 'After: \n'
+            print df
             frame = PlotFrame(None, -1, "Plot Display", dataframe = df, columnIndex = self.columnChoice.GetCurrentSelection(), xaxis = differentAxis, xaxisIndex = xaxesIndex, bintype = self.binChoice)
         else:
             frame = PlotFrame(None, -1, "Plot Display", dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), False), columnIndex = -1, xaxis = 0, xaxisIndex = 0, bintype = self.binChoice.GetCurrentSelection())
@@ -711,7 +736,7 @@ class NewFile(wx.Frame):
         # Create experiment file buttons
         createFileButton = wx.Button(self, -1, "Save file as", (15, 235))
         self.Bind(wx.EVT_BUTTON, self.createFile, createFileButton)
-        
+    
     def createFile(self, event):
         dlg = wx.FileDialog(
             self, message="Save File As",
