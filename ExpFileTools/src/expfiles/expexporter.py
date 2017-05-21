@@ -11,13 +11,12 @@ import expreader
 
 def export_log(exp_path, new_path ,node_index):
     '''
-    The log file at the associated node_index is exported as a tab delimited csv with the same name it had before being
-    placed in the experiment file. Unless alternative file_name is specified. 
+    The log file at the associated node_index is exported as a tab delimited csv at new_path
    
     |  Arguments:
     |      exp_path -- path to experiment file
-    |      new_path -- path to directory to place exported file, ex C:\\\\User\\\\Jack\\\\exported_files 
-    |          or C:\\\\User\\\\Jack\\\\exported_files\\\\ or ..\\\\files  use single slashes
+    |      new_path -- path to place exported file, ex C:\\\\User\\\\Jack\\\\exported_files\\\\test.txt 
+    |          or C:\\\\User\\\\Jack\\\\exported_files\\\\test.txt  or ..\\\\files\\\\test.txt   use single slashes
     |      index -- index of node to export, 0 or greater. 
     '''
     print('Exporting log of ' + str(node_index))
@@ -27,8 +26,8 @@ def export_log(exp_path, new_path ,node_index):
 
 def export_bin(exp_path, new_path ,index):
     '''
-    Given path to experiment file and an index of the node in the experiment file returns DataFrame of bin
-    An exception will be thrown if the log file is not found experiment file
+    The bin file at the associated node_index is exported as a binary file of 64-bit floating point values 
+    at new_path
         Arguments:
     |      exp_path -- path to experiment file
     |      new_path -- path to place exported file, ex C:\\\\User\\\\Jack\\\\exported_files\\\\test.bin 

@@ -683,7 +683,7 @@ class NewFile(wx.Frame):
         self.SetBackgroundColour((232,239,252))
 
         self.numberOfNodes = 1
-        self.nodePathList = []
+        self.nodePathList = ['','']
         # Description of file
         wx.StaticText(self, -1, "Description of file:", (15, 8))
         self.fileDescription = wx.TextCtrl(self, -1, "", size=(200, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER, pos = (15, 25))
@@ -728,7 +728,7 @@ class NewFile(wx.Frame):
             
             while (i < self.numberOfNodes):
                 if (self.masterSlaveChoice.GetCurrentSelection() == 0):
-                    node_list.append(node.Node(self.nodePathList[2*i], self.nodePathList[2*i+1], 'master'))
+                    node_list.append( node.Node(self.nodePathList[2*i], self.nodePathList[2*i+1], 'master') )
                 else:
                     node_list.append(node.Node(self.nodePathList[2*i], self.nodePathList[2*i+1]))
                 i = i + 1
