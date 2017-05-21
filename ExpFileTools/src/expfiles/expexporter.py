@@ -9,30 +9,32 @@ import os
 import expreader
 
 
-def export_log(exp_path, dir_path ,node_index, file_name=''):
+def export_log(exp_path, new_path ,node_index):
     '''
     The log file at the associated node_index is exported as a tab delimited csv with the same name it had before being
     placed in the experiment file. Unless alternative file_name is specified. 
    
     |  Arguments:
     |      exp_path -- path to experiment file
-    |      dir_path -- path to directory to place exported file, ex C:\\\\User\\\\Jack\\\\exported_files 
+    |      new_path -- path to directory to place exported file, ex C:\\\\User\\\\Jack\\\\exported_files 
     |          or C:\\\\User\\\\Jack\\\\exported_files\\\\ or ..\\\\files  use single slashes
     |      index -- index of node to export, 0 or greater. 
-    |      file_name -- if no file name is given the original log file name is used
     '''
     print('Exporting log of ' + str(node_index))
-    full_path = dir_path
     data = pd.read_hdf(exp_path,'log' + str(node_index))
-    data.to_csv(full_path,sep='\t',index=False);#TODO: check passed in names for validity on log and bin
+    data.to_csv(new_path,sep='\t',index=False);#TODO: check passed in names for validity on log and bin
     
 
-def export_bin(exp_path, new_path ,index,file_name=''):
+def export_bin(exp_path, new_path ,index):
     '''
     Given path to experiment file and an index of the node in the experiment file returns DataFrame of bin
     An exception will be thrown if the log file is not found experiment file
+        Arguments:
+    |      exp_path -- path to experiment file
+    |      new_path -- path to place exported file, ex C:\\\\User\\\\Jack\\\\exported_files\\\\test.bin 
+    |          or C:\\\\User\\\\Jack\\\\exported_files\\\\test.bin  or ..\\\\files\\\\test.bin   use single slashes
+    |      index -- index of node to export, 0 or greater. 
     '''
-
     print('Exporting bin of ' + str(index))
     data = pd.read_hdf(exp_path,'bin' + str(index))
     data.as_matrix().tofile(new_path)
