@@ -147,7 +147,7 @@ class ExportSettings(wx.Frame):
   
     def choiceEvent(self, event):
         self.node = int(self.nodeChoice.GetCurrentSelection())
-        if ((self.nodeselect.GetCurrentSelection() == 0) and (self.export_filepath != "")): #log
+        if ((self.nodeselect.GetString(self.nodeselect.GetCurrentSelection()) == 'log') and (self.export_filepath != "")): #log
             dataframe = expreader.get_node_file(self.export_filepath, int(self.nodeChoice.GetCurrentSelection()), True)
             self.isLog = True
             print self.isLog
@@ -491,7 +491,7 @@ class AnalyzeSettings(wx.Frame):
         if (self.nodeChosen == 1):
             self.createPlot.Enable(True)
             self.createSheet.Enable(True)
-        if ((self.nodeselect.GetCurrentSelection() == 0) and (self.analyze_filepath != "")): #log
+        if ((self.nodeselect.GetString(self.nodeselect.GetCurrentSelection()) == 'log') and (self.analyze_filepath != "")): #log
             dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
             self.columnChoice.Clear()
             self.column.Clear()
@@ -531,16 +531,17 @@ class AnalyzeSettings(wx.Frame):
         if(newSelectionIndex != wx.NOT_FOUND):
             self.nodeselect.SetSelection(newSelectionIndex)
             self.logBinChosen = True
+            self.choiceEvent('')
         if(self.nodeselect.GetCount() == 1):
             self.nodeselect.SetSelection(0)
             self.logBinChosen = True
-
+            self.choiceEvent('')
         self.createPlot.Enable(self.logBinChosen)
         self.createSheet.Enable(self.logBinChosen)
             
             
             
-        if ((self.nodeselect.GetCurrentSelection() == 0) and (self.analyze_filepath != "")): #log
+        if ((self.nodeselect.GetString(self.nodeselect.GetCurrentSelection()) == 'log') and (self.analyze_filepath != "")): #log
             dataframe = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
             self.columnChoice.Clear()
             self.column.Clear()
@@ -562,7 +563,7 @@ class AnalyzeSettings(wx.Frame):
 
     
     def menuSpreadsheet(self, event):
-        if (self.nodeselect.GetCurrentSelection() == 0):
+        if (self.nodeselect.GetString(self.nodeselect.GetCurrentSelection()) == 'log'):
             df = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
 
             # https://docs.scipy.org/doc/numpy/reference/generated/numpy.where.html
@@ -575,7 +576,7 @@ class AnalyzeSettings(wx.Frame):
         frame.Show(True)
     
     def menuPlot(self, event):
-        if (self.nodeselect.GetCurrentSelection() == 0):
+        if (self.nodeselect.GetString(self.nodeselect.GetCurrentSelection()) == 'log'):
             df = expreader.get_node_file(self.analyze_filepath, int(self.ch.GetCurrentSelection()), True)
             
             # xaxis
